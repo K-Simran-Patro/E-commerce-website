@@ -1,9 +1,7 @@
-/* Applies to every element */
 * {
   box-sizing: border-box;
 }
 
-/* Main page body */
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -13,7 +11,8 @@ body {
   min-height: 100vh;
 }
 
-/* Left sidebar */
+/* ================= SIDEBAR ================= */
+
 .sidebar {
   width: 280px;
   background: #111827;
@@ -25,7 +24,6 @@ body {
   left: 0;
 }
 
-/* Logo/header in sidebar */
 .brand {
   display: flex;
   align-items: center;
@@ -55,7 +53,6 @@ body {
   font-size: 13px;
 }
 
-/* Sidebar navigation */
 .nav {
   display: grid;
   gap: 10px;
@@ -78,7 +75,6 @@ body {
   color: white;
 }
 
-/* API URL box in sidebar */
 .api-box {
   margin-top: 32px;
   background: #1f2937;
@@ -101,14 +97,14 @@ body {
   color: white;
 }
 
-/* Main content area */
+/* ================= MAIN AREA ================= */
+
 .main {
   margin-left: 280px;
   padding: 28px;
   width: calc(100% - 280px);
 }
 
-/* Top header area */
 .topbar {
   display: flex;
   align-items: center;
@@ -126,7 +122,6 @@ body {
   color: #6b7280;
 }
 
-/* Only active section is visible */
 .content-section {
   display: none;
 }
@@ -135,7 +130,6 @@ body {
   display: block;
 }
 
-/* Section headings */
 .section-header {
   margin-bottom: 16px;
 }
@@ -150,7 +144,8 @@ body {
   color: #6b7280;
 }
 
-/* White card style */
+/* ================= CARDS ================= */
+
 .card {
   background: white;
   border-radius: 18px;
@@ -159,14 +154,14 @@ body {
   margin-bottom: 22px;
 }
 
-/* Form layout */
+/* ================= FORMS ================= */
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(220px, 1fr));
   gap: 16px;
 }
 
-/* Form labels */
 label {
   display: grid;
   gap: 8px;
@@ -174,7 +169,6 @@ label {
   font-size: 14px;
 }
 
-/* Inputs, dropdowns, textarea */
 input,
 select,
 textarea {
@@ -183,6 +177,14 @@ textarea {
   border: 1px solid #d1d5db;
   border-radius: 12px;
   font-size: 14px;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 textarea {
@@ -190,19 +192,18 @@ textarea {
   resize: vertical;
 }
 
-/* Makes a field take full row */
 .wide {
   grid-column: span 2;
 }
 
-/* Button area */
 .form-actions {
   grid-column: span 2;
   display: flex;
   gap: 12px;
 }
 
-/* Buttons */
+/* ================= BUTTONS ================= */
+
 .primary-btn,
 .secondary-btn,
 .danger-btn {
@@ -213,31 +214,40 @@ textarea {
   font-weight: 700;
 }
 
-/* Blue button */
 .primary-btn {
   background: #2563eb;
   color: white;
 }
 
-/* Grey button */
+.primary-btn:hover {
+  background: #1d4ed8;
+}
+
 .secondary-btn {
   background: #e5e7eb;
   color: #111827;
 }
 
-/* Red delete button */
+.secondary-btn:hover {
+  background: #d1d5db;
+}
+
 .danger-btn {
   background: #fee2e2;
   color: #b91c1c;
 }
 
-/* Smaller buttons inside tables */
+.danger-btn:hover {
+  background: #fecaca;
+}
+
 .small-btn {
   padding: 8px 12px;
   font-size: 12px;
 }
 
-/* Table header line */
+/* ================= TABLES ================= */
+
 .table-title {
   display: flex;
   align-items: center;
@@ -249,12 +259,10 @@ textarea {
   margin: 0;
 }
 
-/* Enables horizontal scroll on small screens */
 .table-wrap {
   overflow-x: auto;
 }
 
-/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -275,7 +283,6 @@ th {
   color: #374151;
 }
 
-/* Small ID boxes */
 td code {
   background: #f3f4f6;
   padding: 4px 6px;
@@ -283,14 +290,14 @@ td code {
   font-size: 12px;
 }
 
-/* Edit/delete button group */
 .actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-/* Toast message */
+/* ================= TOAST ================= */
+
 .toast {
   position: fixed;
   right: 28px;
@@ -303,12 +310,12 @@ td code {
   z-index: 99;
 }
 
-/* Hidden class */
 .hidden {
   display: none;
 }
 
-/* Mobile responsive design */
+/* ================= MOBILE ================= */
+
 @media (max-width: 900px) {
   body {
     display: block;

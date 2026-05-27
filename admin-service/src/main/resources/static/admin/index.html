@@ -7,7 +7,6 @@
 
   <title>E-Commerce Admin Service</title>
 
-  <!-- This connects your CSS file -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -65,7 +64,6 @@
       </button>
     </header>
 
-    <!-- Small success/error message -->
     <div id="toast" class="toast hidden"></div>
 
     <!-- ================= CATEGORIES SECTION ================= -->
@@ -74,22 +72,21 @@
       <div class="section-header">
         <div>
           <h3>Categories</h3>
-          <p>Manage category hierarchy such as Shoes, Electronics, Clothing.</p>
+          <p>Manage categories like Shoes, Electronics, Clothing, etc.</p>
         </div>
       </div>
 
-      <!-- CATEGORY FORM -->
       <form id="categoryForm" class="card form-grid">
 
-        <!-- Hidden ID is used during update -->
+        <!-- This hidden ID is used only while updating -->
         <input type="hidden" id="categoryId" />
 
         <label>
           Parent Category ID
           <input
             id="categoryParentId"
-            type="text"
-            placeholder="Optional parent category UUID"
+            type="number"
+            placeholder="Optional parent category ID"
           />
         </label>
 
@@ -125,7 +122,6 @@
 
       </form>
 
-      <!-- CATEGORY TABLE -->
       <div class="card table-card">
 
         <div class="table-title">
@@ -149,7 +145,7 @@
             </thead>
 
             <tbody id="categoriesTableBody">
-              <!-- JavaScript will add category rows here -->
+              <!-- JavaScript will add rows here -->
             </tbody>
           </table>
         </div>
@@ -164,22 +160,21 @@
       <div class="section-header">
         <div>
           <h3>Products</h3>
-          <p>Manage main product details. Variants like size/color are handled separately.</p>
+          <p>Manage main product details. Size and color are handled in variants.</p>
         </div>
       </div>
 
-      <!-- PRODUCT FORM -->
       <form id="productForm" class="card form-grid">
 
-        <!-- Hidden ID is used during update -->
+        <!-- This hidden ID is used only while updating -->
         <input type="hidden" id="productId" />
 
         <label>
           Category ID
           <input
             id="productCategoryId"
-            type="text"
-            placeholder="Required category UUID"
+            type="number"
+            placeholder="Required category ID"
             required
           />
         </label>
@@ -188,8 +183,8 @@
           Brand ID
           <input
             id="productBrandId"
-            type="text"
-            placeholder="Optional brand UUID"
+            type="number"
+            placeholder="Optional brand ID"
           />
         </label>
 
@@ -241,7 +236,6 @@
 
       </form>
 
-      <!-- PRODUCT TABLE -->
       <div class="card table-card">
 
         <div class="table-title">
@@ -258,6 +252,7 @@
               <tr>
                 <th>Product ID</th>
                 <th>Category ID</th>
+                <th>Brand ID</th>
                 <th>Name</th>
                 <th>Status</th>
                 <th>Main Image</th>
@@ -266,7 +261,7 @@
             </thead>
 
             <tbody id="productsTableBody">
-              <!-- JavaScript will add product rows here -->
+              <!-- JavaScript will add rows here -->
             </tbody>
           </table>
         </div>
@@ -281,22 +276,21 @@
       <div class="section-header">
         <div>
           <h3>Product Variants</h3>
-          <p>Manage sellable SKUs such as size/color combinations.</p>
+          <p>Manage sellable SKUs like size/color combinations.</p>
         </div>
       </div>
 
-      <!-- VARIANT FORM -->
       <form id="variantForm" class="card form-grid">
 
-        <!-- Hidden ID is used during update -->
+        <!-- This hidden ID is used only while updating -->
         <input type="hidden" id="variantId" />
 
         <label>
           Product ID
           <input
             id="variantProductId"
-            type="text"
-            placeholder="Required product UUID"
+            type="number"
+            placeholder="Required product ID"
             required
           />
         </label>
@@ -359,7 +353,6 @@
 
       </form>
 
-      <!-- VARIANT TABLE -->
       <div class="card table-card">
 
         <div class="table-title">
@@ -386,7 +379,7 @@
             </thead>
 
             <tbody id="variantsTableBody">
-              <!-- JavaScript will add variant rows here -->
+              <!-- JavaScript will add rows here -->
             </tbody>
           </table>
         </div>
@@ -397,7 +390,6 @@
 
   </main>
 
-  <!-- This connects your JavaScript file -->
   <script src="app.js"></script>
 
 </body>

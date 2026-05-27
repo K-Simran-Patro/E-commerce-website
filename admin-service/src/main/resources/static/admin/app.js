@@ -20,21 +20,6 @@ function showToast(message) {
   }, 2500);
 }
 
-/* Shorten long UUIDs for display */
-function shortId(value) {
-  if (!value) {
-    return "-";
-  }
-
-  const text = String(value);
-
-  if (text.length > 12) {
-    return text.substring(0, 12) + "...";
-  }
-
-  return text;
-}
-
 /* Show dash if value is empty */
 function safeValue(value) {
   if (value === null || value === undefined || value === "") {
@@ -100,9 +85,10 @@ categoryForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const categoryId = document.getElementById("categoryId").value;
+  const parentIdValue = document.getElementById("categoryParentId").value;
 
   const payload = {
-    parentId: document.getElementById("categoryParentId").value || null,
+    parentId: parentIdValue ? Number(parentIdValue) : null,
     name: document.getElementById("categoryName").value,
     slug: document.getElementById("categorySlug").value
   };
@@ -148,20 +134,9 @@ async function loadCategories() {
     tbody.innerHTML = categories.map((category) => {
       return `
         <tr>
-          <td>
-            <code title="${category.categoryId}">
-              ${shortId(category.categoryId)}
-            </code>
-          </td>
-
-          <td>
-            <code title="${category.parentId || ""}">
-              ${shortId(category.parentId)}
-            </code>
-          </td>
-
+          <td>${category.categoryId}</td>
+          <td>${safeValue(category.parentId)}</td>
           <td>${safeValue(category.name)}</td>
-
           <td>${safeValue(category.slug)}</td>
 
           <td>
@@ -175,7 +150,7 @@ async function loadCategories() {
 
               <button
                 class="danger-btn small-btn"
-                onclick='deleteCategory("${category.categoryId}")'
+                onclick='deleteCategory(${category.categoryId})'
               >
                 Delete
               </button>
@@ -229,10 +204,11 @@ productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const productId = document.getElementById("productId").value;
+  const brandIdValue = document.getElementById("productBrandId").value;
 
   const payload = {
-    categoryId: document.getElementById("productCategoryId").value,
-    brandId: document.getElementById("productBrandId").value || null,
+    categoryId: Number(document.getElementById("productCategoryId").value),
+    brandId: brandIdValue ? Number(brandIdValue) : null,
     name: document.getElementById("productName").value,
     description: document.getElementById("productDescription").value || null,
     mainImageKey: document.getElementById("productMainImageKey").value || null,
@@ -281,22 +257,11 @@ async function loadProducts() {
     tbody.innerHTML = products.map((product) => {
       return `
         <tr>
-          <td>
-            <code title="${product.productId}">
-              ${shortId(product.productId)}
-            </code>
-          </td>
-
-          <td>
-            <code title="${product.categoryId}">
-              ${shortId(product.categoryId)}
-            </code>
-          </td>
-
+          <td>${product.productId}</td>
+          <td>${product.categoryId}</td>
+          <td>${safeValue(product.brandId)}</td>
           <td>${safeValue(product.name)}</td>
-
           <td>${safeValue(product.status)}</td>
-
           <td>${safeValue(product.mainImageKey)}</td>
 
           <td>
@@ -310,7 +275,7 @@ async function loadProducts() {
 
               <button
                 class="danger-btn small-btn"
-                onclick='deleteProduct("${product.productId}")'
+                onclick='deleteProduct(${product.productId})'
               >
                 Delete
               </button>
@@ -370,7 +335,7 @@ variantForm.addEventListener("submit", async (event) => {
   const priceValue = document.getElementById("variantPrice").value;
 
   const payload = {
-    productId: document.getElementById("variantProductId").value,
+    productId: Number(document.getElementById("variantProductId").value),
     sku: document.getElementById("variantSku").value,
     color: document.getElementById("variantColor").value || null,
     size: document.getElementById("variantSize").value || null,
@@ -420,26 +385,12 @@ async function loadVariants() {
     tbody.innerHTML = variants.map((variant) => {
       return `
         <tr>
-          <td>
-            <code title="${variant.variantId}">
-              ${shortId(variant.variantId)}
-            </code>
-          </td>
-
-          <td>
-            <code title="${variant.productId}">
-              ${shortId(variant.productId)}
-            </code>
-          </td>
-
+          <td>${variant.variantId}</td>
+          <td>${variant.productId}</td>
           <td>${safeValue(variant.sku)}</td>
-
           <td>${safeValue(variant.color)}</td>
-
           <td>${safeValue(variant.size)}</td>
-
           <td>${safeValue(variant.price)}</td>
-
           <td>${safeValue(variant.isActive)}</td>
 
           <td>
@@ -453,7 +404,7 @@ async function loadVariants() {
 
               <button
                 class="danger-btn small-btn"
-                onclick='deleteVariant("${variant.variantId}")'
+                onclick='deleteVariant(${variant.variantId})'
               >
                 Delete
               </button>
