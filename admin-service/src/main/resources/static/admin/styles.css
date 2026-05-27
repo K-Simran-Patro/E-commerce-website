@@ -1,0 +1,342 @@
+/* Applies to every element */
+* {
+  box-sizing: border-box;
+}
+
+/* Main page body */
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f7fb;
+  color: #1f2937;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Left sidebar */
+.sidebar {
+  width: 280px;
+  background: #111827;
+  color: white;
+  padding: 24px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Logo/header in sidebar */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.brand h1 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.brand p {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+/* Sidebar navigation */
+.nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav-btn {
+  border: none;
+  background: transparent;
+  color: #d1d5db;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background: #1f2937;
+  color: white;
+}
+
+/* API URL box in sidebar */
+.api-box {
+  margin-top: 32px;
+  background: #1f2937;
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.api-box span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.api-box input {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #374151;
+  background: #111827;
+  color: white;
+}
+
+/* Main content area */
+.main {
+  margin-left: 280px;
+  padding: 28px;
+  width: calc(100% - 280px);
+}
+
+/* Top header area */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.topbar h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.topbar p {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+/* Only active section is visible */
+.content-section {
+  display: none;
+}
+
+.active-section {
+  display: block;
+}
+
+/* Section headings */
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.section-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+/* White card style */
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  margin-bottom: 22px;
+}
+
+/* Form layout */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Form labels */
+label {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Inputs, dropdowns, textarea */
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+/* Makes a field take full row */
+.wide {
+  grid-column: span 2;
+}
+
+/* Button area */
+.form-actions {
+  grid-column: span 2;
+  display: flex;
+  gap: 12px;
+}
+
+/* Buttons */
+.primary-btn,
+.secondary-btn,
+.danger-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Blue button */
+.primary-btn {
+  background: #2563eb;
+  color: white;
+}
+
+/* Grey button */
+.secondary-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* Red delete button */
+.danger-btn {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Smaller buttons inside tables */
+.small-btn {
+  padding: 8px 12px;
+  font-size: 12px;
+}
+
+/* Table header line */
+.table-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.table-title h4 {
+  margin: 0;
+}
+
+/* Enables horizontal scroll on small screens */
+.table-wrap {
+  overflow-x: auto;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+th,
+td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+th {
+  background: #f9fafb;
+  color: #374151;
+}
+
+/* Small ID boxes */
+td code {
+  background: #f3f4f6;
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* Edit/delete button group */
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Toast message */
+.toast {
+  position: fixed;
+  right: 28px;
+  top: 24px;
+  background: #111827;
+  color: white;
+  padding: 14px 18px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  z-index: 99;
+}
+
+/* Hidden class */
+.hidden {
+  display: none;
+}
+
+/* Mobile responsive design */
+@media (max-width: 900px) {
+  body {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    width: 100%;
+  }
+
+  .main {
+    margin-left: 0;
+    width: 100%;
+    padding: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wide,
+  .form-actions {
+    grid-column: span 1;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 12px;
+    flex-direction: column;
+  }
+}

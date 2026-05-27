@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>E-Commerce Admin Service</title>
+
+  <!-- This connects your CSS file -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="brand">
+      <div class="brand-icon">A</div>
+
+      <div>
+        <h1>Admin Service</h1>
+        <p>E-Commerce Back Office</p>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-btn active" data-section="categories-section">
+        Categories
+      </button>
+
+      <button class="nav-btn" data-section="products-section">
+        Products
+      </button>
+
+      <button class="nav-btn" data-section="variants-section">
+        Product Variants
+      </button>
+    </nav>
+
+    <div class="api-box">
+      <span>API Base URL</span>
+
+      <input
+        id="apiBaseUrl"
+        type="text"
+        value="http://localhost:8081/api/admin"
+      />
+    </div>
+
+  </aside>
+
+  <!-- MAIN AREA -->
+  <main class="main">
+
+    <header class="topbar">
+      <div>
+        <h2>Admin Dashboard</h2>
+        <p>Create, read, update, and delete catalog data.</p>
+      </div>
+
+      <button id="refreshAllBtn" class="secondary-btn">
+        Refresh All
+      </button>
+    </header>
+
+    <!-- Small success/error message -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- ================= CATEGORIES SECTION ================= -->
+    <section id="categories-section" class="content-section active-section">
+
+      <div class="section-header">
+        <div>
+          <h3>Categories</h3>
+          <p>Manage category hierarchy such as Shoes, Electronics, Clothing.</p>
+        </div>
+      </div>
+
+      <!-- CATEGORY FORM -->
+      <form id="categoryForm" class="card form-grid">
+
+        <!-- Hidden ID is used during update -->
+        <input type="hidden" id="categoryId" />
+
+        <label>
+          Parent Category ID
+          <input
+            id="categoryParentId"
+            type="text"
+            placeholder="Optional parent category UUID"
+          />
+        </label>
+
+        <label>
+          Category Name
+          <input
+            id="categoryName"
+            type="text"
+            placeholder="Example: Shoes"
+            required
+          />
+        </label>
+
+        <label>
+          Slug
+          <input
+            id="categorySlug"
+            type="text"
+            placeholder="Example: shoes"
+            required
+          />
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">
+            Save Category
+          </button>
+
+          <button type="button" id="clearCategoryBtn" class="secondary-btn">
+            Clear
+          </button>
+        </div>
+
+      </form>
+
+      <!-- CATEGORY TABLE -->
+      <div class="card table-card">
+
+        <div class="table-title">
+          <h4>Category List</h4>
+
+          <button class="secondary-btn small-btn" onclick="loadCategories()">
+            Reload
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Category ID</th>
+                <th>Parent ID</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="categoriesTableBody">
+              <!-- JavaScript will add category rows here -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= PRODUCTS SECTION ================= -->
+    <section id="products-section" class="content-section">
+
+      <div class="section-header">
+        <div>
+          <h3>Products</h3>
+          <p>Manage main product details. Variants like size/color are handled separately.</p>
+        </div>
+      </div>
+
+      <!-- PRODUCT FORM -->
+      <form id="productForm" class="card form-grid">
+
+        <!-- Hidden ID is used during update -->
+        <input type="hidden" id="productId" />
+
+        <label>
+          Category ID
+          <input
+            id="productCategoryId"
+            type="text"
+            placeholder="Required category UUID"
+            required
+          />
+        </label>
+
+        <label>
+          Brand ID
+          <input
+            id="productBrandId"
+            type="text"
+            placeholder="Optional brand UUID"
+          />
+        </label>
+
+        <label class="wide">
+          Product Name
+          <input
+            id="productName"
+            type="text"
+            placeholder="Example: Nike Air Max"
+            required
+          />
+        </label>
+
+        <label class="wide">
+          Description
+          <textarea
+            id="productDescription"
+            placeholder="Write product description"
+          ></textarea>
+        </label>
+
+        <label>
+          Main Image Key
+          <input
+            id="productMainImageKey"
+            type="text"
+            placeholder="products/nike-air-max/main.jpg"
+          />
+        </label>
+
+        <label>
+          Status
+          <select id="productStatus">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+            <option value="draft">draft</option>
+          </select>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">
+            Save Product
+          </button>
+
+          <button type="button" id="clearProductBtn" class="secondary-btn">
+            Clear
+          </button>
+        </div>
+
+      </form>
+
+      <!-- PRODUCT TABLE -->
+      <div class="card table-card">
+
+        <div class="table-title">
+          <h4>Product List</h4>
+
+          <button class="secondary-btn small-btn" onclick="loadProducts()">
+            Reload
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product ID</th>
+                <th>Category ID</th>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Main Image</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="productsTableBody">
+              <!-- JavaScript will add product rows here -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= PRODUCT VARIANTS SECTION ================= -->
+    <section id="variants-section" class="content-section">
+
+      <div class="section-header">
+        <div>
+          <h3>Product Variants</h3>
+          <p>Manage sellable SKUs such as size/color combinations.</p>
+        </div>
+      </div>
+
+      <!-- VARIANT FORM -->
+      <form id="variantForm" class="card form-grid">
+
+        <!-- Hidden ID is used during update -->
+        <input type="hidden" id="variantId" />
+
+        <label>
+          Product ID
+          <input
+            id="variantProductId"
+            type="text"
+            placeholder="Required product UUID"
+            required
+          />
+        </label>
+
+        <label>
+          SKU
+          <input
+            id="variantSku"
+            type="text"
+            placeholder="NIKE-AIR-MAX-BLACK-9"
+            required
+          />
+        </label>
+
+        <label>
+          Color
+          <input
+            id="variantColor"
+            type="text"
+            placeholder="Black"
+          />
+        </label>
+
+        <label>
+          Size
+          <input
+            id="variantSize"
+            type="text"
+            placeholder="9"
+          />
+        </label>
+
+        <label>
+          Price
+          <input
+            id="variantPrice"
+            type="number"
+            step="0.01"
+            placeholder="7199.00"
+          />
+        </label>
+
+        <label>
+          Active
+          <select id="variantIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">
+            Save Variant
+          </button>
+
+          <button type="button" id="clearVariantBtn" class="secondary-btn">
+            Clear
+          </button>
+        </div>
+
+      </form>
+
+      <!-- VARIANT TABLE -->
+      <div class="card table-card">
+
+        <div class="table-title">
+          <h4>Variant List</h4>
+
+          <button class="secondary-btn small-btn" onclick="loadVariants()">
+            Reload
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Variant ID</th>
+                <th>Product ID</th>
+                <th>SKU</th>
+                <th>Color</th>
+                <th>Size</th>
+                <th>Price</th>
+                <th>Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="variantsTableBody">
+              <!-- JavaScript will add variant rows here -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- This connects your JavaScript file -->
+  <script src="app.js"></script>
+
+</body>
+</html>
