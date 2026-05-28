@@ -1,454 +1,207 @@
-const apiInput = document.getElementById("apiBaseUrl");
-const toast = document.getElementById("toast");
-
-/* Get current API base URL from sidebar input */
-function apiBase() {
-  return apiInput.value.trim();
+/* this gets the api url from the input box in the sidebar, it is used because when js sends data to backend it needs to know where the backend is running */
+function apiUrl() {
+  return document.getElementById("apiUrl").value;
 }
 
-/* Show small success/error message(which is used to show pop up message like category created successfully) */
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.remove("hidden");
-
-  setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 2500);
+/* it shows pop up messages on the page like category created successfully*/
+function showMessage(text) {
+  document.getElementById("message").innerText = text;
 }
 
-/* Show dash if value is empty */
-function safeValue(value) {
-  if (value === null || value === undefined || value === "") {
-    return "-";
-  }
-
-  return value;
+/* it is used to open or close sidebar menus like to see the sub categories*/
+function toggleMenu(id) {
+  document.getElementById(id).classList.toggle("hidden");
 }
 
-/* Fetch function(for calling backend from frontend) */
-async function requestJson(url, options = {}) {
-  const response = await fetch(url, {
+/* it is used to show one page at a time */
+function showPage(id) {
+  let pages = document.querySelectorAll(".page");
+
+  pages.forEach(function(page) {
+    page.classList.add("hidden");
+  });
+
+  document.getElementById(id).classList.remove("hidden");
+}
+
+/* it is used to send data from admin page to backend, the fetch function is a built in function in js which is used to call api, method is used to tell the backend what function to perform, header tells the backend that the request is in json format, stringify is used to convert the text inton json format as api send it in text format */
+async function sendData(url, method, data) {
+  let response = await fetch(url, {
+    method: method,
     headers: {
       "Content-Type": "application/json"
     },
-    ...options
+    body: JSON.stringify(data)
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Request failed");
+  if (response.ok) {
+    showMessage("Action completed successfully");
+  } else {
+    showMessage("Something went wrong");
   }
-
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
 }
 
-/* SIDEBAR NAVIGATION */
-
-document.querySelectorAll(".nav-btn").forEach((button) => {
-  button.addEventListener("click", () => {
-
-    document.querySelectorAll(".nav-btn").forEach((btn) => {
-      btn.classList.remove("active");
-    });
-
-    document.querySelectorAll(".content-section").forEach((section) => {
-      section.classList.remove("active-section");
-    });
-
-    button.classList.add("active");
-
-    const sectionId = button.dataset.section;
-    document.getElementById(sectionId).classList.add("active-section");
+/* response ok means it checks whether the backend request succeeded or failed and deleteData is used to request to the backend to remove a record from database */
+async function deleteData(url) {
+  let response = await fetch(url, {
+    method: "DELETE"
   });
-});
 
-/* Refresh all tables */
-document.getElementById("refreshAllBtn").addEventListener("click", loadAll);
+  if (response.ok) {
+    showMessage("Deleted successfully");
+  } else {
+    showMessage("Delete failed");
+  }
+}
 
-/* CATEGORY CRUD */
+/* CATEGORY */
 
-const categoryForm = document.getElementById("categoryForm");
+/* it runs when create category form is submitted */
+document.getElementById("createCategoryForm").addEventListener("submit", function(e) {
+  e.preventDefault(); /* stops the browser from refreshing the page */
 
-categoryForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+  let parentId = document.getElementById("createCategoryParentId").value; /* get the value entered in the parent id section */
 
-  const categoryId = document.getElementById("categoryId").value;
-  const parentIdValue = document.getElementById("categoryParentId").value;
-
-  /* Data is send to backend */
-  const payload = {
-    parentId: parentIdValue ? Number(parentIdValue) : null,
-    name: document.getElementById("categoryName").value,
-    slug: document.getElementById("categorySlug").value
+  /* creates data object that will be sent to backend */
+  let data = {
+    parentId: parentId ? Number(parentId) : null,
+    name: document.getElementById("createCategoryName").value,
+    slug: document.getElementById("createCategorySlug").value
   };
 
-  /* It checks if the id exists it will update and if not it will create new id */
-  try {
-    if (categoryId) {
-      await requestJson(`${apiBase()}/categories/${categoryId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload)
-      });
-
-      showToast("Category updated successfully");
-    } else {
-      await requestJson(`${apiBase()}/categories`, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-
-      showToast("Category created successfully");
-    }
-
-    clearCategoryForm();
-    loadCategories();
-
-  } catch (error) {
-    showToast("Category error: " + error.message);
-  }
+  sendData(apiUrl() + "/categories", "POST", data);
+  this.reset(); /* reset function is used to clear the form after submit */
 });
 
-document.getElementById("clearCategoryBtn").addEventListener("click", clearCategoryForm);
+/* it is used to update an existing category and it needs the id */
+document.getElementById("updateCategoryForm").addEventListener("submit", function(e) {
+  e.preventDefault(); 
 
-function clearCategoryForm() {
-  categoryForm.reset();
-  document.getElementById("categoryId").value = "";
-}
+  let id = document.getElementById("updateCategoryId").value;
+  let parentId = document.getElementById("updateCategoryParentId").value; 
 
-/* It puts the data into the table*/
-async function loadCategories() {
-  try {
-    const categories = await requestJson(`${apiBase()}/categories`);
-
-    const tbody = document.getElementById("categoriesTableBody");
-
-    tbody.innerHTML = categories.map((category) => {
-      return `
-        <tr>
-          <td>${category.categoryId}</td>
-          <td>${safeValue(category.parentId)}</td>
-          <td>${safeValue(category.name)}</td>
-          <td>${safeValue(category.slug)}</td>
-
-          <td>
-            <div class="actions">
-              <button
-                class="secondary-btn small-btn"
-                onclick='editCategory(${JSON.stringify(category)})'
-              >
-                Edit
-              </button>
-
-              <button
-                class="danger-btn small-btn"
-                onclick='deleteCategory(${category.categoryId})'
-              >
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-  } catch (error) {
-    showToast("Could not load categories");
-  }
-}
-
-function editCategory(category) {
-  document.getElementById("categoryId").value = category.categoryId;
-  document.getElementById("categoryParentId").value = category.parentId || "";
-  document.getElementById("categoryName").value = category.name || "";
-  document.getElementById("categorySlug").value = category.slug || "";
-
-  showToast("Category loaded for editing");
-}
-
-async function deleteCategory(categoryId) {
-  const confirmDelete = confirm("Delete this category?");
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    await requestJson(`${apiBase()}/categories/${categoryId}`, {
-      method: "DELETE"
-    });
-
-    showToast("Category deleted successfully");
-    loadCategories();
-
-  } catch (error) {
-    showToast("Delete failed: " + error.message);
-  }
-}
-
-/* PRODUCT CRUD */
-
-const productForm = document.getElementById("productForm");
-
-productForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const productId = document.getElementById("productId").value;
-  const brandIdValue = document.getElementById("productBrandId").value;
-
-  /* Number is used as HTML return value is text but the backend expects integer value so we convert them to match the id with the db */
-  const payload = {
-    categoryId: Number(document.getElementById("productCategoryId").value),
-    brandId: brandIdValue ? Number(brandIdValue) : null,
-    name: document.getElementById("productName").value,
-    description: document.getElementById("productDescription").value || null,
-    mainImageKey: document.getElementById("productMainImageKey").value || null,
-    status: document.getElementById("productStatus").value
+  let data = {
+    parentId: parentId ? Number(parentId) : null,
+    name: document.getElementById("updateCategoryName").value,
+    slug: document.getElementById("updateCategorySlug").value
   };
 
-  try {
-    if (productId) {
-      await requestJson(`${apiBase()}/products/${productId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload)
-      });
+  sendData(apiUrl() + "/categories/" + id, "PUT", data);
+  this.reset();
+});
 
-      showToast("Product updated successfully");
-    } else {
-      await requestJson(`${apiBase()}/products`, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
+/* it is used to delete a category */
+document.getElementById("deleteCategoryForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-      showToast("Product created successfully");
-    }
+  let id = document.getElementById("deleteCategoryId").value;
 
-    clearProductForm();
-    loadProducts();
-
-  } catch (error) {
-    showToast("Product error: " + error.message);
+  if (confirm("Delete this category?")) {
+    deleteData(apiUrl() + "/categories/" + id);
+    this.reset();
   }
 });
 
-document.getElementById("clearProductBtn").addEventListener("click", clearProductForm);
+/* PRODUCT */
+/* it runs when create product form is submitted */
+document.getElementById("createProductForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-function clearProductForm() {
-  productForm.reset();
-  document.getElementById("productId").value = "";
-  document.getElementById("productStatus").value = "active";
-}
+  let brandId = document.getElementById("createProductBrandId").value;
 
-async function loadProducts() {
-  try {
-    const products = await requestJson(`${apiBase()}/products`);
-
-    const tbody = document.getElementById("productsTableBody");
-
-    tbody.innerHTML = products.map((product) => {
-      return `
-        <tr>
-          <td>${product.productId}</td>
-          <td>${product.categoryId}</td>
-          <td>${safeValue(product.brandId)}</td>
-          <td>${safeValue(product.name)}</td>
-          <td>${safeValue(product.status)}</td>
-          <td>${safeValue(product.mainImageKey)}</td>
-
-          <td>
-            <div class="actions">
-              <button
-                class="secondary-btn small-btn"
-                onclick='editProduct(${JSON.stringify(product)})'
-              >
-                Edit
-              </button>
-
-              <button
-                class="danger-btn small-btn"
-                onclick='deleteProduct(${product.productId})'
-              >
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-  } catch (error) {
-    showToast("Could not load products");
-  }
-}
-
-function editProduct(product) {
-  document.getElementById("productId").value = product.productId;
-  document.getElementById("productCategoryId").value = product.categoryId || "";
-  document.getElementById("productBrandId").value = product.brandId || "";
-  document.getElementById("productName").value = product.name || "";
-  document.getElementById("productDescription").value = product.description || "";
-  document.getElementById("productMainImageKey").value = product.mainImageKey || "";
-  document.getElementById("productStatus").value = product.status || "active";
-
-  showToast("Product loaded for editing");
-}
-
-async function deleteProduct(productId) {
-  const confirmDelete = confirm("Delete this product?");
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    await requestJson(`${apiBase()}/products/${productId}`, {
-      method: "DELETE"
-    });
-
-    showToast("Product deleted successfully");
-    loadProducts();
-
-  } catch (error) {
-    showToast("Delete failed: " + error.message);
-  }
-}
-
-/* PRODUCT VARIANT CRUD */
-
-const variantForm = document.getElementById("variantForm");
-
-variantForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const variantId = document.getElementById("variantId").value;
-  const priceValue = document.getElementById("variantPrice").value;
-
-  const payload = {
-    productId: Number(document.getElementById("variantProductId").value),
-    sku: document.getElementById("variantSku").value,
-    color: document.getElementById("variantColor").value || null,
-    size: document.getElementById("variantSize").value || null,
-    price: priceValue ? Number(priceValue) : null,
-    isActive: document.getElementById("variantIsActive").value === "true"
+  let data = {
+    categoryId: Number(document.getElementById("createProductCategoryId").value), /*number function converts input text into an actual number because backend and database use integer id.*/
+    brandId: brandId ? Number(brandId) : null,
+    name: document.getElementById("createProductName").value,
+    description: document.getElementById("createProductDescription").value,
+    mainImageKey: document.getElementById("createProductImage").value,
+    status: document.getElementById("createProductStatus").value
   };
 
-  try {
-    if (variantId) {
-      await requestJson(`${apiBase()}/variants/${variantId}`, {
-        method: "PUT",
-        body: JSON.stringify(payload)
-      });
+  sendData(apiUrl() + "/products", "POST", data);
+  this.reset();
+});
 
-      showToast("Variant updated successfully");
-    } else {
-      await requestJson(`${apiBase()}/variants`, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
+/* it is used to update an existing product and it needs the id */
+document.getElementById("updateProductForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-      showToast("Variant created successfully");
-    }
+  let id = document.getElementById("updateProductId").value;
+  let brandId = document.getElementById("updateProductBrandId").value;
 
-    clearVariantForm();
-    loadVariants();
+  let data = {
+    categoryId: Number(document.getElementById("updateProductCategoryId").value),
+    brandId: brandId ? Number(brandId) : null,
+    name: document.getElementById("updateProductName").value,
+    description: document.getElementById("updateProductDescription").value,
+    mainImageKey: document.getElementById("updateProductImage").value,
+    status: document.getElementById("updateProductStatus").value
+  };
 
-  } catch (error) {
-    showToast("Variant error: " + error.message);
+  sendData(apiUrl() + "/products/" + id, "PUT", data);
+  this.reset();
+});
+
+/* it is used to delete a product */
+document.getElementById("deleteProductForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  let id = document.getElementById("deleteProductId").value;
+
+  if (confirm("Delete this product?")) {
+    deleteData(apiUrl() + "/products/" + id);
+    this.reset();
   }
 });
 
-document.getElementById("clearVariantBtn").addEventListener("click", clearVariantForm);
+/* PRODUCT VARIANT */
+/* it runs when create productvariant form is submitted */
+document.getElementById("createVariantForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-function clearVariantForm() {
-  variantForm.reset();
-  document.getElementById("variantId").value = "";
-  document.getElementById("variantIsActive").value = "true";
-}
+  let price = document.getElementById("createVariantPrice").value;
 
-async function loadVariants() {
-  try {
-    const variants = await requestJson(`${apiBase()}/variants`);
+  let data = {
+    productId: Number(document.getElementById("createVariantProductId").value),
+    sku: document.getElementById("createVariantSku").value,
+    color: document.getElementById("createVariantColor").value,
+    size: document.getElementById("createVariantSize").value,
+    price: price ? Number(price) : null,
+    isActive: document.getElementById("createVariantActive").value === "true"
+  };
 
-    const tbody = document.getElementById("variantsTableBody");
+  sendData(apiUrl() + "/variants", "POST", data);
+  this.reset();
+});
 
-    tbody.innerHTML = variants.map((variant) => {
-      return `
-        <tr>
-          <td>${variant.variantId}</td>
-          <td>${variant.productId}</td>
-          <td>${safeValue(variant.sku)}</td>
-          <td>${safeValue(variant.color)}</td>
-          <td>${safeValue(variant.size)}</td>
-          <td>${safeValue(variant.price)}</td>
-          <td>${safeValue(variant.isActive)}</td>
+/* it is used to update an existing productvariant and it needs the id */
+document.getElementById("updateVariantForm").addEventListener("submit", function(e) {
+  e.preventDefault();
 
-          <td>
-            <div class="actions">
-              <button
-                class="secondary-btn small-btn"
-                onclick='editVariant(${JSON.stringify(variant)})'
-              >
-                Edit
-              </button>
+  let id = document.getElementById("updateVariantId").value;
+  let price = document.getElementById("updateVariantPrice").value;
 
-              <button
-                class="danger-btn small-btn"
-                onclick='deleteVariant(${variant.variantId})'
-              >
-                Delete
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join("");
+  let data = {
+    productId: Number(document.getElementById("updateVariantProductId").value),
+    sku: document.getElementById("updateVariantSku").value,
+    color: document.getElementById("updateVariantColor").value,
+    size: document.getElementById("updateVariantSize").value,
+    price: price ? Number(price) : null,
+    isActive: document.getElementById("updateVariantActive").value === "true"
+  };
 
-  } catch (error) {
-    showToast("Could not load variants");
+  sendData(apiUrl() + "/variants/" + id, "PUT", data);
+  this.reset();
+});
+
+/* it is used to delete a productvariant */
+document.getElementById("deleteVariantForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  let id = document.getElementById("deleteVariantId").value;
+
+  if (confirm("Delete this variant?")) {
+    deleteData(apiUrl() + "/variants/" + id);
+    this.reset();
   }
-}
-
-function editVariant(variant) {
-  document.getElementById("variantId").value = variant.variantId;
-  document.getElementById("variantProductId").value = variant.productId || "";
-  document.getElementById("variantSku").value = variant.sku || "";
-  document.getElementById("variantColor").value = variant.color || "";
-  document.getElementById("variantSize").value = variant.size || "";
-  document.getElementById("variantPrice").value = variant.price || "";
-  document.getElementById("variantIsActive").value = String(variant.isActive ?? true);
-
-  showToast("Variant loaded for editing");
-}
-
-async function deleteVariant(variantId) {
-  const confirmDelete = confirm("Delete this variant?");
-
-  if (!confirmDelete) {
-    return;
-  }
-
-  try {
-    await requestJson(`${apiBase()}/variants/${variantId}`, {
-      method: "DELETE"
-    });
-
-    showToast("Variant deleted successfully");
-    loadVariants();
-
-  } catch (error) {
-    showToast("Delete failed: " + error.message);
-  }
-}
-
-/* LOAD DATA WHEN PAGE OPENS */
-
-function loadAll() {
-  loadCategories();
-  loadProducts();
-  loadVariants();
-}
-
-loadAll();
+});

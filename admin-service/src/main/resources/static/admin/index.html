@@ -2,391 +2,348 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>E-Commerce Admin Service</title>
-
+  <title>Admin Service</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
 
-  <!-- LEFT SIDEBAR -->
+  <!-- SIDEBAR -->
   <aside class="sidebar">
 
-    <div class="brand">
-      <div class="brand-icon">A</div>
-
-      <div>
-        <h1>Admin Service</h1>
-        <p>E-Commerce Back Office</p>
-      </div>
+    <!-- FIXED TOP TITLE -->
+    <div class="sidebar-title">
+      <h2>Admin Panel</h2>
     </div>
 
-    <nav class="nav">
-      <button class="nav-btn active" data-section="categories-section">
-        Categories
+    <!-- ONLY THIS PART WILL SCROLL -->
+    <div class="sidebar-menu">
+
+      <!-- PRODUCT SERVICES -->
+      <button class="main-btn" onclick="toggleMenu('productMenu')">
+        Product Services
       </button>
 
-      <button class="nav-btn" data-section="products-section">
-        Products
+      <div id="productMenu" class="menu hidden">
+
+        <!-- CATEGORIES -->
+        <button class="sub-btn" onclick="toggleMenu('categoryMenu')">
+          Categories
+        </button>
+
+        <div id="categoryMenu" class="sub-menu hidden">
+          <button onclick="showPage('createCategoryPage')">Create Category</button>
+          <button onclick="showPage('updateCategoryPage')">Update Category</button>
+          <button onclick="showPage('deleteCategoryPage')">Delete Category</button>
+        </div>
+
+        <!-- PRODUCTS -->
+        <button class="sub-btn" onclick="toggleMenu('productSubMenu')">
+          Products
+        </button>
+
+        <div id="productSubMenu" class="sub-menu hidden">
+          <button onclick="showPage('createProductPage')">Create Product</button>
+          <button onclick="showPage('updateProductPage')">Update Product</button>
+          <button onclick="showPage('deleteProductPage')">Delete Product</button>
+        </div>
+
+        <!-- PRODUCT VARIANTS -->
+        <button class="sub-btn" onclick="toggleMenu('variantMenu')">
+          Product Variants
+        </button>
+
+        <div id="variantMenu" class="sub-menu hidden">
+          <button onclick="showPage('createVariantPage')">Create Variant</button>
+          <button onclick="showPage('updateVariantPage')">Update Variant</button>
+          <button onclick="showPage('deleteVariantPage')">Delete Variant</button>
+        </div>
+
+      </div>
+
+      <!-- OTHER MAIN SERVICES -->
+      <button class="main-btn" onclick="showPage('itemPage')">
+        Item Services
       </button>
 
-      <button class="nav-btn" data-section="variants-section">
-        Product Variants
+      <button class="main-btn" onclick="showPage('inboundPage')">
+        Inbound Services
       </button>
-    </nav>
 
+      <button class="main-btn" onclick="showPage('inventoryPage')">
+        Inventory
+      </button>
+
+    </div>
+
+    <!-- FIXED BOTTOM API BOX -->
     <div class="api-box">
-      <span>API Base URL</span>
-
-      <input
-        id="apiBaseUrl"
-        type="text"
-        value="http://localhost:8081/api/admin"
-      />
+      <label>API URL</label>
+      <input id="apiUrl" value="http://localhost:8082/api/admin" />
     </div>
 
   </aside>
 
-  <!-- MAIN AREA -->
-  <main class="main">
+  <!-- MAIN CONTENT -->
+  <main class="content">
 
-    <header class="topbar">
-      <div>
-        <h2>Admin Dashboard</h2>
+    <h1>Admin Service Dashboard</h1>
+    <p class="subtitle">Create, update and delete product service data.</p>
+
+    <div id="message"></div>
+
+    <!-- HOME PAGE -->
+    <section id="homePage" class="page">
+      <div class="card">
+        <h2>Welcome Admin</h2>
+        <p>Select a service from the sidebar.</p>
       </div>
-
-      <button id="refreshAllBtn" class="secondary-btn">
-        Refresh All
-      </button>
-    </header>
-
-    <div id="toast" class="toast hidden"></div>
-
-    <!-- ================= CATEGORIES SECTION ================= -->
-    <section id="categories-section" class="content-section active-section">
-
-      <div class="section-header">
-        <div>
-          <h3>Categories</h3>
-        </div>
-      </div>
-
-      <form id="categoryForm" class="card form-grid">
-
-        <!-- This hidden ID is used only while updating -->
-        <input type="hidden" id="categoryId" />
-
-        <label>
-          Parent Category ID
-          <input
-            id="categoryParentId"
-            type="number"
-            placeholder="Optional parent category ID"
-          />
-        </label>
-
-        <label>
-          Category Name
-          <input
-            id="categoryName"
-            type="text"
-            placeholder="Example: Shoes"
-            required
-          />
-        </label>
-
-        <label>
-          Slug
-          <input
-            id="categorySlug"
-            type="text"
-            placeholder="Example: shoes"
-            required
-          />
-        </label>
-
-        <div class="form-actions">
-          <button type="submit" class="primary-btn">
-            Save Category
-          </button>
-
-          <button type="button" id="clearCategoryBtn" class="secondary-btn">
-            Clear
-          </button>
-        </div>
-
-      </form>
-
-      <div class="card table-card">
-
-        <div class="table-title">
-          <h4>Category List</h4>
-
-          <button class="secondary-btn small-btn" onclick="loadCategories()">
-            Reload
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Category ID</th>
-                <th>Parent ID</th>
-                <th>Name</th>
-                <th>Slug</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody id="categoriesTableBody">
-              <!-- JavaScript will add rows here -->
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-
     </section>
 
-    <!-- ================= PRODUCTS SECTION ================= -->
-    <section id="products-section" class="content-section">
+    <!-- ================= CATEGORY PAGES ================= -->
 
-      <div class="section-header">
-        <div>
-          <h3>Products</h3>
-        </div>
+    <section id="createCategoryPage" class="page hidden">
+      <div class="card">
+        <h2>Create Category</h2>
+
+        <form id="createCategoryForm">
+          <label>Parent Category ID</label>
+          <input id="createCategoryParentId" type="number" placeholder="Optional" />
+
+          <label>Category Name</label>
+          <input id="createCategoryName" type="text" placeholder="Shoes" required />
+
+          <label>Slug</label>
+          <input id="createCategorySlug" type="text" placeholder="shoes" required />
+
+          <button type="submit">Create Category</button>
+        </form>
       </div>
+    </section>
 
-      <form id="productForm" class="card form-grid">
+    <section id="updateCategoryPage" class="page hidden">
+      <div class="card">
+        <h2>Update Category</h2>
 
-        <!-- This hidden ID is used only while updating -->
-        <input type="hidden" id="productId" />
+        <form id="updateCategoryForm">
+          <label>Category ID</label>
+          <input id="updateCategoryId" type="number" required />
 
-        <label>
-          Category ID
-          <input
-            id="productCategoryId"
-            type="number"
-            placeholder="Required category ID"
-            required
-          />
-        </label>
+          <label>Parent Category ID</label>
+          <input id="updateCategoryParentId" type="number" placeholder="Optional" />
 
-        <label>
-          Brand ID
-          <input
-            id="productBrandId"
-            type="number"
-            placeholder="Optional brand ID"
-          />
-        </label>
+          <label>Category Name</label>
+          <input id="updateCategoryName" type="text" required />
 
-        <label class="wide">
-          Product Name
-          <input
-            id="productName"
-            type="text"
-            placeholder="Example: Nike Air Max"
-            required
-          />
-        </label>
+          <label>Slug</label>
+          <input id="updateCategorySlug" type="text" required />
 
-        <label class="wide">
-          Description
-          <textarea
-            id="productDescription"
-            placeholder="Write product description"
-          ></textarea>
-        </label>
+          <button type="submit">Update Category</button>
+        </form>
+      </div>
+    </section>
 
-        <label>
-          Main Image Key
-          <input
-            id="productMainImageKey"
-            type="text"
-            placeholder="products/nike-air-max/main.jpg"
-          />
-        </label>
+    <section id="deleteCategoryPage" class="page hidden">
+      <div class="card">
+        <h2>Delete Category</h2>
 
-        <label>
-          Status
-          <select id="productStatus">
+        <form id="deleteCategoryForm">
+          <label>Category ID</label>
+          <input id="deleteCategoryId" type="number" required />
+
+          <button type="submit" class="delete-btn">Delete Category</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= PRODUCT PAGES ================= -->
+
+    <section id="createProductPage" class="page hidden">
+      <div class="card">
+        <h2>Create Product</h2>
+
+        <form id="createProductForm">
+          <label>Category ID</label>
+          <input id="createProductCategoryId" type="number" required />
+
+          <label>Brand ID</label>
+          <input id="createProductBrandId" type="number" placeholder="Optional" />
+
+          <label>Product Name</label>
+          <input id="createProductName" type="text" required />
+
+          <label>Description</label>
+          <textarea id="createProductDescription"></textarea>
+
+          <label>Main Image Key</label>
+          <input id="createProductImage" type="text" placeholder="products/shoe.jpg" />
+
+          <label>Status</label>
+          <select id="createProductStatus">
             <option value="active">active</option>
             <option value="inactive">inactive</option>
             <option value="draft">draft</option>
           </select>
-        </label>
 
-        <div class="form-actions">
-          <button type="submit" class="primary-btn">
-            Save Product
-          </button>
-
-          <button type="button" id="clearProductBtn" class="secondary-btn">
-            Clear
-          </button>
-        </div>
-
-      </form>
-
-      <div class="card table-card">
-
-        <div class="table-title">
-          <h4>Product List</h4>
-
-          <button class="secondary-btn small-btn" onclick="loadProducts()">
-            Reload
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Product ID</th>
-                <th>Category ID</th>
-                <th>Brand ID</th>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Main Image</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody id="productsTableBody">
-              <!-- JavaScript will add rows here -->
-            </tbody>
-          </table>
-        </div>
-
+          <button type="submit">Create Product</button>
+        </form>
       </div>
-
     </section>
 
-    <!-- ================= PRODUCT VARIANTS SECTION ================= -->
-    <section id="variants-section" class="content-section">
+    <section id="updateProductPage" class="page hidden">
+      <div class="card">
+        <h2>Update Product</h2>
 
-      <div class="section-header">
-        <div>
-          <h3>Product Variants</h3>
-        </div>
+        <form id="updateProductForm">
+          <label>Product ID</label>
+          <input id="updateProductId" type="number" required />
+
+          <label>Category ID</label>
+          <input id="updateProductCategoryId" type="number" required />
+
+          <label>Brand ID</label>
+          <input id="updateProductBrandId" type="number" placeholder="Optional" />
+
+          <label>Product Name</label>
+          <input id="updateProductName" type="text" required />
+
+          <label>Description</label>
+          <textarea id="updateProductDescription"></textarea>
+
+          <label>Main Image Key</label>
+          <input id="updateProductImage" type="text" />
+
+          <label>Status</label>
+          <select id="updateProductStatus">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+            <option value="draft">draft</option>
+          </select>
+
+          <button type="submit">Update Product</button>
+        </form>
       </div>
+    </section>
 
-      <form id="variantForm" class="card form-grid">
+    <section id="deleteProductPage" class="page hidden">
+      <div class="card">
+        <h2>Delete Product</h2>
 
-        <!-- This hidden ID is used only while updating -->
-        <input type="hidden" id="variantId" />
+        <form id="deleteProductForm">
+          <label>Product ID</label>
+          <input id="deleteProductId" type="number" required />
 
-        <label>
-          Product ID
-          <input
-            id="variantProductId"
-            type="number"
-            placeholder="Required product ID"
-            required
-          />
-        </label>
+          <button type="submit" class="delete-btn">Delete Product</button>
+        </form>
+      </div>
+    </section>
 
-        <label>
-          SKU
-          <input
-            id="variantSku"
-            type="text"
-            placeholder="NIKE-AIR-MAX-BLACK-9"
-            required
-          />
-        </label>
+    <!-- ================= VARIANT PAGES ================= -->
 
-        <label>
-          Color
-          <input
-            id="variantColor"
-            type="text"
-            placeholder="Black"
-          />
-        </label>
+    <section id="createVariantPage" class="page hidden">
+      <div class="card">
+        <h2>Create Product Variant</h2>
 
-        <label>
-          Size
-          <input
-            id="variantSize"
-            type="text"
-            placeholder="9"
-          />
-        </label>
+        <form id="createVariantForm">
+          <label>Product ID</label>
+          <input id="createVariantProductId" type="number" required />
 
-        <label>
-          Price
-          <input
-            id="variantPrice"
-            type="number"
-            step="0.01"
-            placeholder="7199.00"
-          />
-        </label>
+          <label>SKU</label>
+          <input id="createVariantSku" type="text" required />
 
-        <label>
-          Active
-          <select id="variantIsActive">
+          <label>Color</label>
+          <input id="createVariantColor" type="text" />
+
+          <label>Size</label>
+          <input id="createVariantSize" type="text" />
+
+          <label>Price</label>
+          <input id="createVariantPrice" type="number" step="0.01" />
+
+          <label>Active</label>
+          <select id="createVariantActive">
             <option value="true">true</option>
             <option value="false">false</option>
           </select>
-        </label>
 
-        <div class="form-actions">
-          <button type="submit" class="primary-btn">
-            Save Variant
-          </button>
-
-          <button type="button" id="clearVariantBtn" class="secondary-btn">
-            Clear
-          </button>
-        </div>
-
-      </form>
-
-      <div class="card table-card">
-
-        <div class="table-title">
-          <h4>Variant List</h4>
-
-          <button class="secondary-btn small-btn" onclick="loadVariants()">
-            Reload
-          </button>
-        </div>
-
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Variant ID</th>
-                <th>Product ID</th>
-                <th>SKU</th>
-                <th>Color</th>
-                <th>Size</th>
-                <th>Price</th>
-                <th>Active</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody id="variantsTableBody">
-              <!-- JavaScript will add rows here -->
-            </tbody>
-          </table>
-        </div>
-
+          <button type="submit">Create Variant</button>
+        </form>
       </div>
+    </section>
 
+    <section id="updateVariantPage" class="page hidden">
+      <div class="card">
+        <h2>Update Product Variant</h2>
+
+        <form id="updateVariantForm">
+          <label>Variant ID</label>
+          <input id="updateVariantId" type="number" required />
+
+          <label>Product ID</label>
+          <input id="updateVariantProductId" type="number" required />
+
+          <label>SKU</label>
+          <input id="updateVariantSku" type="text" required />
+
+          <label>Color</label>
+          <input id="updateVariantColor" type="text" />
+
+          <label>Size</label>
+          <input id="updateVariantSize" type="text" />
+
+          <label>Price</label>
+          <input id="updateVariantPrice" type="number" step="0.01" />
+
+          <label>Active</label>
+          <select id="updateVariantActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+
+          <button type="submit">Update Variant</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="deleteVariantPage" class="page hidden">
+      <div class="card">
+        <h2>Delete Product Variant</h2>
+
+        <form id="deleteVariantForm">
+          <label>Variant ID</label>
+          <input id="deleteVariantId" type="number" required />
+
+          <button type="submit" class="delete-btn">Delete Variant</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- OTHER SERVICE PAGES -->
+
+    <section id="itemPage" class="page hidden">
+      <div class="card">
+        <h2>Item Services</h2>
+        <p>This page can be created later.</p>
+      </div>
+    </section>
+
+    <section id="inboundPage" class="page hidden">
+      <div class="card">
+        <h2>Inbound Services</h2>
+        <p>This page can be created later.</p>
+      </div>
+    </section>
+
+    <section id="inventoryPage" class="page hidden">
+      <div class="card">
+        <h2>Inventory</h2>
+        <p>This page can be created later.</p>
+      </div>
     </section>
 
   </main>
 
   <script src="app.js"></script>
-
 </body>
 </html>
