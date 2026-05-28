@@ -15,7 +15,7 @@ body {
   color: #222;
 }
 
-/* ================= SIDEBAR ================= */
+/*  SIDEBAR  */
 
 .sidebar {
   width: 300px;
@@ -66,7 +66,7 @@ body {
   background: #6b7280;
 }
 
-/* ================= BUTTONS IN SIDEBAR ================= */
+/*  BUTTONS IN SIDEBAR  */
 
 .main-btn,
 .sub-btn,
@@ -107,7 +107,7 @@ body {
   opacity: 0.85;
 }
 
-/* ================= API BOX FIXED AT BOTTOM ================= */
+/*  API BOX FIXED AT BOTTOM  */
 
 .api-box {
   flex-shrink: 0;
@@ -131,7 +131,7 @@ body {
   border: none;
 }
 
-/* ================= MAIN CONTENT ================= */
+/*  MAIN CONTENT  */
 
 .content {
   margin-left: 300px;
@@ -157,7 +157,7 @@ h1 {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
-/* ================= FORMS ================= */
+/*  FORMS  */
 
 form {
   display: grid;
@@ -196,7 +196,7 @@ button[type="submit"] {
   background: #dc2626 !important;
 }
 
-/* ================= HELPERS ================= */
+/*  HELPERS  */
 
 .hidden {
   display: none;
@@ -208,7 +208,7 @@ button[type="submit"] {
   color: #2563eb;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE  */
 
 @media (max-width: 800px) {
   .sidebar {
