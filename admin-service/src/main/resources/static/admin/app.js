@@ -1,7 +1,3 @@
-/* =====================================================
-   GLOBAL ELEMENTS
-===================================================== */
-
 const apiInput = document.getElementById("apiBaseUrl");
 const toast = document.getElementById("toast");
 
@@ -10,7 +6,7 @@ function apiBase() {
   return apiInput.value.trim();
 }
 
-/* Show small success/error message */
+/* Show small success/error message(which is used to show pop up message like category created successfully) */
 function showToast(message) {
   toast.textContent = message;
   toast.classList.remove("hidden");
@@ -29,7 +25,7 @@ function safeValue(value) {
   return value;
 }
 
-/* Common fetch function */
+/* Fetch function(for calling backend from frontend) */
 async function requestJson(url, options = {}) {
   const response = await fetch(url, {
     headers: {
@@ -50,9 +46,7 @@ async function requestJson(url, options = {}) {
   return response.json();
 }
 
-/* =====================================================
-   SIDEBAR NAVIGATION
-===================================================== */
+/* SIDEBAR NAVIGATION */
 
 document.querySelectorAll(".nav-btn").forEach((button) => {
   button.addEventListener("click", () => {
@@ -75,9 +69,7 @@ document.querySelectorAll(".nav-btn").forEach((button) => {
 /* Refresh all tables */
 document.getElementById("refreshAllBtn").addEventListener("click", loadAll);
 
-/* =====================================================
-   CATEGORY CRUD
-===================================================== */
+/* CATEGORY CRUD */
 
 const categoryForm = document.getElementById("categoryForm");
 
@@ -87,12 +79,14 @@ categoryForm.addEventListener("submit", async (event) => {
   const categoryId = document.getElementById("categoryId").value;
   const parentIdValue = document.getElementById("categoryParentId").value;
 
+  /* Data is send to backend */
   const payload = {
     parentId: parentIdValue ? Number(parentIdValue) : null,
     name: document.getElementById("categoryName").value,
     slug: document.getElementById("categorySlug").value
   };
 
+  /* It checks if the id exists it will update and if not it will create new id */
   try {
     if (categoryId) {
       await requestJson(`${apiBase()}/categories/${categoryId}`, {
@@ -125,6 +119,7 @@ function clearCategoryForm() {
   document.getElementById("categoryId").value = "";
 }
 
+/* It puts the data into the table*/
 async function loadCategories() {
   try {
     const categories = await requestJson(`${apiBase()}/categories`);
@@ -194,9 +189,7 @@ async function deleteCategory(categoryId) {
   }
 }
 
-/* =====================================================
-   PRODUCT CRUD
-===================================================== */
+/* PRODUCT CRUD */
 
 const productForm = document.getElementById("productForm");
 
@@ -206,6 +199,7 @@ productForm.addEventListener("submit", async (event) => {
   const productId = document.getElementById("productId").value;
   const brandIdValue = document.getElementById("productBrandId").value;
 
+  /* Number is used as HTML return value is text but the backend expects integer value so we convert them to match the id with the db */
   const payload = {
     categoryId: Number(document.getElementById("productCategoryId").value),
     brandId: brandIdValue ? Number(brandIdValue) : null,
@@ -322,9 +316,7 @@ async function deleteProduct(productId) {
   }
 }
 
-/* =====================================================
-   PRODUCT VARIANT CRUD
-===================================================== */
+/* PRODUCT VARIANT CRUD */
 
 const variantForm = document.getElementById("variantForm");
 
@@ -451,9 +443,7 @@ async function deleteVariant(variantId) {
   }
 }
 
-/* =====================================================
-   LOAD DATA WHEN PAGE OPENS
-===================================================== */
+/* LOAD DATA WHEN PAGE OPENS */
 
 function loadAll() {
   loadCategories();
