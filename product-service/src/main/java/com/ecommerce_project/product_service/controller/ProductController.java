@@ -34,6 +34,8 @@ public class ProductController {
         product.setDescription(request.getDescription());
         product.setMainImageKey(request.getMainImageKey());
         product.setStatus(request.getStatus());
+        product.setCreatedBy("admin");
+        product.setModifiedBy("admin");
 
         if (request.getVariants() != null) {
             List<ProductVariant> variants = new ArrayList<>();
@@ -45,6 +47,8 @@ public class ProductController {
                 variant.setSize(v.getSize());
                 variant.setPrice(v.getPrice());
                 variant.setIsActive(v.getIsActive());
+                variant.setCreatedBy("admin");
+                variant.setModifiedBy("admin");
                 variants.add(variant);
             }
             product.setVariants(variants);
@@ -70,6 +74,7 @@ public class ProductController {
         product.setDescription(request.getDescription());
         product.setMainImageKey(request.getMainImageKey());
         product.setStatus(request.getStatus());
+        product.setModifiedBy("admin");
         return productRepository.save(product);
     }
 

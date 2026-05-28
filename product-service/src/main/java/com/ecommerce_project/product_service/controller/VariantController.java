@@ -31,6 +31,8 @@ public class VariantController {
         variant.setSize(request.getSize());
         variant.setPrice(request.getPrice());
         variant.setIsActive(request.getIsActive());
+        variant.setCreatedBy("admin");
+        variant.setModifiedBy("admin");
 
         return variantRepository.save(variant);
     }
