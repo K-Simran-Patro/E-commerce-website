@@ -31,8 +31,8 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @Column(name = "brand_id")
-    private Long brandId;
+    @Column(name = "brand_name", length = 100)
+    private String brandName; 
 
     @Column(name = "name", length = 500, nullable = false)
     private String name;

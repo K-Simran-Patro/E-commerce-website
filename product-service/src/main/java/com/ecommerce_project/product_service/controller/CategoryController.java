@@ -17,10 +17,15 @@ public class CategoryController {
 
     @PostMapping //This method will run when the client sends a POST request to /api/categories. It creates a new category based on the data provided in the request body and saves it to the database.
     //// Converts request data into a Category object and saves it to the database, returning the saved category with its generated ID.
-    public Category createCategory(@RequestBody CategoryRequestDTO request) {
+    public Category createCategory(@RequestBody CategoryRequestDTO request) { // The @RequestBody annotation tells Spring to take the incoming JSON request body and convert it into a CategoryRequestDTO object, which contains the data needed to create a new category. The method then uses this data to create a new Category entity, save it to the database, and return the saved category back to the client.
         Category category = new Category();
         category.setName(request.getName());
         category.setSlug(request.getSlug());
+        //// If a parent category ID is provided, fetch the parent category and link it to the current category
+        if (request.getParentId() != null) {
+            Category parent = categoryRepository.findById(request.getParentId()).get();
+            category.setParent(parent);
+        }
         return categoryRepository.save(category);
     }
 

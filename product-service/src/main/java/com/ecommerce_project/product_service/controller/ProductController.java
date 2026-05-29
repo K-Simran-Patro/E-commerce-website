@@ -1,15 +1,12 @@
 package com.ecommerce_project.product_service.controller;
 
 import com.ecommerce_project.product_service.dto.product.ProductRequestDTO;
-import com.ecommerce_project.product_service.dto.variant.VariantRequestDTO;
 import com.ecommerce_project.product_service.entity.Category;
 import com.ecommerce_project.product_service.entity.Product;
-import com.ecommerce_project.product_service.entity.ProductVariant;
 import com.ecommerce_project.product_service.repository.CategoryRepository;
 import com.ecommerce_project.product_service.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,35 +21,19 @@ public class ProductController {
     private CategoryRepository categoryRepository;
 
     @PostMapping
-    public Product createProduct(@RequestBody ProductRequestDTO request) {
+    public Product createProduct(@RequestBody ProductRequestDTO request) { // Convert incoming JSON request body into a ProductRequestDTO object, which contains the data needed to create a new product. The method then uses this data to create a new Product entity, save it to the database, and return the saved product back to the client.
         Category category = categoryRepository.findById(request.getCategoryId()).get();
 
         Product product = new Product();
+        // Set product fields using values received from the request DTO and the fetched category. The product's category is set to the category fetched from the database using the category ID provided in the request. Other fields like brand name, name, description, main image key, status, created by, and modified by are set using the corresponding values from the request DTO and hardcoded values for createdBy and modifiedBy.
         product.setCategory(category);
-        product.setBrandId(request.getBrandId());
+        product.setBrandName(request.getBrandName());
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setMainImageKey(request.getMainImageKey());
         product.setStatus(request.getStatus());
         product.setCreatedBy("admin");
         product.setModifiedBy("admin");
-
-        if (request.getVariants() != null) {
-            List<ProductVariant> variants = new ArrayList<>();
-            for (VariantRequestDTO v : request.getVariants()) {
-                ProductVariant variant = new ProductVariant();
-                variant.setProduct(product);
-                variant.setSku(v.getSku());
-                variant.setColor(v.getColor());
-                variant.setSize(v.getSize());
-                variant.setPrice(v.getPrice());
-                variant.setIsActive(v.getIsActive());
-                variant.setCreatedBy("admin");
-                variant.setModifiedBy("admin");
-                variants.add(variant);
-            }
-            product.setVariants(variants);
-        }
 
         return productRepository.save(product);
     }
@@ -74,6 +55,7 @@ public class ProductController {
         product.setDescription(request.getDescription());
         product.setMainImageKey(request.getMainImageKey());
         product.setStatus(request.getStatus());
+        product.setBrandName(request.getBrandName());
         product.setModifiedBy("admin");
         return productRepository.save(product);
     }

@@ -26,3 +26,17 @@ CREATE TABLE product_variants (
   is_active  BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+ALTER TABLE product_variants
+ADD COLUMN created_by VARCHAR(100),
+ADD COLUMN modified_at TIMESTAMP,
+ADD COLUMN modified_by VARCHAR(100);
+
+ALTER TABLE products 
+ADD COLUMN created_by VARCHAR(100),
+ADD COLUMN modified_at TIMESTAMP,
+ADD COLUMN modified_by VARCHAR(100);
+
+ALTER TABLE products ADD COLUMN brand_name VARCHAR(100);
+ALTER TABLE products DROP COLUMN brand_id;
