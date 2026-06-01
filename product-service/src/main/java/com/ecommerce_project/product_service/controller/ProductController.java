@@ -1,68 +1,53 @@
 package com.ecommerce_project.product_service.controller;
 
 import com.ecommerce_project.product_service.dto.product.ProductRequestDTO;
-import com.ecommerce_project.product_service.entity.Category;
-import com.ecommerce_project.product_service.entity.Product;
-import com.ecommerce_project.product_service.repository.CategoryRepository;
-import com.ecommerce_project.product_service.repository.ProductRepository;
+import com.ecommerce_project.product_service.dto.product.ProductResponseDTO;
+import com.ecommerce_project.product_service.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
     @Autowired
-    private ProductRepository productRepository;
+    private ProductService productService;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
-
+    // Create new product
     @PostMapping
-    public Product createProduct(@RequestBody ProductRequestDTO request) { // Convert incoming JSON request body into a ProductRequestDTO object, which contains the data needed to create a new product. The method then uses this data to create a new Product entity, save it to the database, and return the saved product back to the client.
-        Category category = categoryRepository.findById(request.getCategoryId()).get();
-
-        Product product = new Product();
-        // Set product fields using values received from the request DTO and the fetched category. The product's category is set to the category fetched from the database using the category ID provided in the request. Other fields like brand name, name, description, main image key, status, created by, and modified by are set using the corresponding values from the request DTO and hardcoded values for createdBy and modifiedBy.
-        product.setCategory(category);
-        product.setBrandName(request.getBrandName());
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setMainImageKey(request.getMainImageKey());
-        product.setStatus(request.getStatus());
-        product.setCreatedBy("admin");
-        product.setModifiedBy("admin");
-
-        return productRepository.save(product);
+    public ProductResponseDTO createProduct(
+            @RequestBody ProductRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return productService.createProduct(request, username);
     }
 
+    // Get all products
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponseDTO> getAllProducts() {
+        return productService.getAllProducts();
     }
 
+    // Get product by id
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Long id) {
-        return productRepository.findById(id).get();
+    public ProductResponseDTO getProductById(@PathVariable Long id) {
+        return productService.getProductById(id);
     }
 
-    @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Long id, @RequestBody ProductRequestDTO request) {
-        Product product = productRepository.findById(id).get();
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setMainImageKey(request.getMainImageKey());
-        product.setStatus(request.getStatus());
-        product.setBrandName(request.getBrandName());
-        product.setModifiedBy("admin");
-        return productRepository.save(product);
+    // Update product - id comes from request body
+    @PutMapping
+    public ProductResponseDTO updateProduct(
+            @RequestBody ProductRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return productService.updateProduct(request, username);
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        productRepository.deleteById(id);
-        return "Product deleted successfully";
+    // Delete product - id comes from request body
+    @DeleteMapping
+    public String deleteProduct(
+            @RequestBody ProductRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return productService.deleteProduct(request, username);
     }
 }
