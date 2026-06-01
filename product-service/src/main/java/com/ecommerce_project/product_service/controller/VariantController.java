@@ -1,62 +1,47 @@
 package com.ecommerce_project.product_service.controller;
 
 import com.ecommerce_project.product_service.dto.variant.VariantRequestDTO;
-import com.ecommerce_project.product_service.entity.Product;
-import com.ecommerce_project.product_service.entity.ProductVariant;
-import com.ecommerce_project.product_service.repository.ProductRepository;
-import com.ecommerce_project.product_service.repository.ProductVariantRepository;
+import com.ecommerce_project.product_service.dto.variant.VariantResponseDTO;
+import com.ecommerce_project.product_service.service.VariantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
 public class VariantController {
 
     @Autowired
-    private ProductVariantRepository variantRepository;
+    private VariantService variantService;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @PostMapping("/products/{productId}/variants")
-    public ProductVariant addVariant(@PathVariable Long productId, @RequestBody VariantRequestDTO request) {
-        Product product = productRepository.findById(productId).get();
-
-        ProductVariant variant = new ProductVariant();
-        variant.setProduct(product);
-        variant.setSku(request.getSku());
-        variant.setColor(request.getColor());
-        variant.setSize(request.getSize());
-        variant.setPrice(request.getPrice());
-        variant.setIsActive(request.getIsActive());
-        variant.setCreatedBy("admin");
-        variant.setModifiedBy("admin");
-
-        return variantRepository.save(variant);
+    // Create new variant
+    @PostMapping("/variants")
+    public VariantResponseDTO createVariant(
+            @RequestBody VariantRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return variantService.createVariant(request, username);
     }
 
+    // Get all variants by product
     @GetMapping("/products/{productId}/variants")
-    public List<ProductVariant> getVariantsByProduct(@PathVariable Long productId) {
-        Product product = productRepository.findById(productId).get();
-        return product.getVariants();
+    public List<VariantResponseDTO> getVariantsByProduct(@PathVariable Long productId) {
+        return variantService.getVariantsByProduct(productId);
     }
 
-    @PutMapping("/variants/{variantId}")
-    public ProductVariant updateVariant(@PathVariable Long variantId, @RequestBody VariantRequestDTO request) {
-        ProductVariant variant = variantRepository.findById(variantId).get();
-        variant.setSku(request.getSku());
-        variant.setColor(request.getColor());
-        variant.setSize(request.getSize());
-        variant.setPrice(request.getPrice());
-        variant.setIsActive(request.getIsActive());
-        return variantRepository.save(variant);
+    // Update variant - id comes from request body
+    @PutMapping("/variants")
+    public VariantResponseDTO updateVariant(
+            @RequestBody VariantRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return variantService.updateVariant(request, username);
     }
 
-    @DeleteMapping("/variants/{variantId}")
-    public String deleteVariant(@PathVariable Long variantId) {
-        variantRepository.deleteById(variantId);
-        return "Variant deleted successfully";
+    // Delete variant - id comes from request body
+    @DeleteMapping("/variants")
+    public String deleteVariant(
+            @RequestBody VariantRequestDTO request,
+            @RequestHeader("X-User-Name") String username) {
+        return variantService.deleteVariant(request, username);
     }
 }
