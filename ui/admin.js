@@ -52,6 +52,11 @@ function showPage(id) {
   if (id === "productPage") loadProducts();
 }
 
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+
 /* ================= API HELPERS ================= */
 
 function getHeaders() {
