@@ -10,10 +10,10 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class VariantRequestDTO {
+public class VariantResponseDTO {
 
-    private Long variantId;      // used for update and delete
-    private Long productId;      // used for create
+    private Long variantId;
+    private Long productId;
     private String sku;
     private String color;
     private String size;
