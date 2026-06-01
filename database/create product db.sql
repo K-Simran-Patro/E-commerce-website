@@ -27,7 +27,7 @@ CREATE TABLE product_variants (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
+// Adding audit fields to track creation and modification details
 ALTER TABLE product_variants
 ADD COLUMN created_by VARCHAR(100),
 ADD COLUMN modified_at TIMESTAMP,
@@ -40,3 +40,12 @@ ADD COLUMN modified_by VARCHAR(100);
 
 ALTER TABLE products ADD COLUMN brand_name VARCHAR(100);
 ALTER TABLE products DROP COLUMN brand_id;
+
+
+
+ALTER TABLE categories
+ADD COLUMN is_active BOOLEAN DEFAULT TRUE,
+ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN created_by VARCHAR(100),
+ADD COLUMN modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN modified_by VARCHAR(100);
