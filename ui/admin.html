@@ -7,340 +7,224 @@
   <link rel="stylesheet" href="admin.css" />
 </head>
 
-
-
 <body>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
+    <h2>Admin Panel</h2>
 
-    <!-- FIXED TOP TITLE -->
-    <div class="sidebar-title">
-      <h2>Admin Panel</h2>
-    </div>
+    <button onclick="showPage('categoryPage')">Categories</button>
+    <button onclick="showPage('productPage')">Products</button>
+    <button onclick="showPage('variantPage')">Product Variants</button>
 
-    <!-- ONLY THIS PART WILL SCROLL -->
-    <div class="sidebar-menu">
+    <hr />
 
-      <!-- PRODUCT SERVICES -->
-      <button class="main-btn" onclick="toggleMenu('productMenu')">
-        Product Services
-      </button>
+    <button onclick="showPage('itemPage')">Item Services</button>
+    <button onclick="showPage('inboundPage')">Inbound Services</button>
+    <button onclick="showPage('inventoryPage')">Inventory</button>
 
-      <div id="productMenu" class="menu hidden">
-
-        <!-- CATEGORIES -->
-        <button class="sub-btn" onclick="toggleMenu('categoryMenu')">
-          Categories
-        </button>
-
-        <div id="categoryMenu" class="sub-menu hidden">
-          <button onclick="showPage('createCategoryPage')">Create Category</button>
-          <button onclick="showPage('updateCategoryPage')">Update Category</button>
-          <button onclick="showPage('deleteCategoryPage')">Delete Category</button>
-        </div>
-
-        <!-- PRODUCTS -->
-        <button class="sub-btn" onclick="toggleMenu('productSubMenu')">
-          Products
-        </button>
-
-        <div id="productSubMenu" class="sub-menu hidden">
-          <button onclick="showPage('createProductPage')">Create Product</button>
-          <button onclick="showPage('updateProductPage')">Update Product</button>
-          <button onclick="showPage('deleteProductPage')">Delete Product</button>
-        </div>
-
-        <!-- PRODUCT VARIANTS -->
-        <button class="sub-btn" onclick="toggleMenu('variantMenu')">
-          Product Variants
-        </button>
-
-        <div id="variantMenu" class="sub-menu hidden">
-          <button onclick="showPage('createVariantPage')">Create Variant</button>
-          <button onclick="showPage('updateVariantPage')">Update Variant</button>
-          <button onclick="showPage('deleteVariantPage')">Delete Variant</button>
-        </div>
-
-      </div>
-
-      <!-- OTHER MAIN SERVICES -->
-      <button class="main-btn" onclick="showPage('itemPage')">
-        Item Services
-      </button>
-
-      <button class="main-btn" onclick="showPage('inboundPage')">
-        Inbound Services
-      </button>
-
-      <button class="main-btn" onclick="showPage('inventoryPage')">
-        Inventory
-      </button>
-
-    </div>
-
-    <!-- FIXED BOTTOM API BOX -->
     <div class="api-box">
-      <label>API URL</label>
-      <input id="apiUrl" value="http://localhost:8082/api/admin" />
-    </div>
+      <label>Backend URL</label>
+      <input id="apiUrl" value="https://e-commerce-website-620c.onrender.com" />
 
+      <label>Admin User ID</label>
+      <input id="adminUserId" placeholder="Paste user_id here" />
+
+      <label>Auth Token</label>
+      <textarea id="authToken" placeholder="Paste Spring Boot JWT or Supabase JWT here"></textarea>
+
+      <button onclick="saveAuth()">Save Auth</button>
+    </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="content">
-
+  <main class="main">
     <h1>Admin Service Dashboard</h1>
 
     <div id="message"></div>
 
-    <!-- HOME PAGE -->
+    <!-- HOME -->
     <section id="homePage" class="page">
       <div class="card">
         <h2>Welcome Admin</h2>
-        <p>Select a service from the sidebar.</p>
+        <p>Select Categories, Products or Product Variants from the sidebar.</p>
       </div>
     </section>
 
-    <!--  CATEGORY PAGES  -->
-
-    <section id="createCategoryPage" class="page hidden">
+    <!-- CATEGORY PAGE -->
+    <section id="categoryPage" class="page hidden">
       <div class="card">
-        <h2>Create Category</h2>
+        <h2>Categories</h2>
 
-        <form id="createCategoryForm">
-          <label>Parent ID</label>
-          <input id="createCategoryParentId" type="number" placeholder="Optional" />
+        <h3>Create Category</h3>
+
+        <form id="categoryForm">
+          <label>Parent Category ID</label>
+          <input id="categoryParentId" type="number" placeholder="Optional" />
 
           <label>Category Name</label>
-          <input id="createCategoryName" type="text" placeholder="Shoes" required />
+          <input id="categoryName" required />
 
           <label>Slug</label>
-          <input id="createCategorySlug" type="text" placeholder="shoes" required />
+          <input id="categorySlug" required />
+
+          <label>Is Active</label>
+          <select id="categoryIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
 
           <button type="submit">Create Category</button>
         </form>
+
+        <hr />
+
+        <h3>View Categories</h3>
+
+        <div class="search-row">
+          <input id="categorySearchId" type="number" placeholder="Search category by ID" />
+          <button onclick="searchCategory()">Search</button>
+          <button onclick="loadCategories()">View All Active</button>
+        </div>
+
+        <div id="categoryList" class="list"></div>
       </div>
     </section>
 
-    <section id="updateCategoryPage" class="page hidden">
+    <!-- PRODUCT PAGE -->
+    <section id="productPage" class="page hidden">
       <div class="card">
-        <h2>Update Category</h2>
+        <h2>Products</h2>
 
-        <form id="updateCategoryForm">
+        <h3>Create Product</h3>
+
+        <form id="productForm">
           <label>Category ID</label>
-          <input id="updateCategoryId" type="number" required />
+          <input id="productCategoryId" type="number" required />
 
-          <label>Parent Category ID</label>
-          <input id="updateCategoryParentId" type="number" placeholder="Optional" />
-
-          <label>Category Name</label>
-          <input id="updateCategoryName" type="text" required />
-
-          <label>Slug</label>
-          <input id="updateCategorySlug" type="text" required />
-
-          <button type="submit">Update Category</button>
-        </form>
-      </div>
-    </section>
-
-    <section id="deleteCategoryPage" class="page hidden">
-      <div class="card">
-        <h2>Delete Category</h2>
-
-        <form id="deleteCategoryForm">
-          <label>Category ID</label>
-          <input id="deleteCategoryId" type="number" required />
-
-          <button type="submit" class="delete-btn">Delete Category</button>
-        </form>
-      </div>
-    </section>
-
-    <!--  PRODUCT PAGES  -->
-
-    <section id="createProductPage" class="page hidden">
-      <div class="card">
-        <h2>Create Product</h2>
-
-        <form id="createProductForm">
-          <label>Category ID</label>
-          <input id="createProductCategoryId" type="number" required />
-
-          <label>Brand ID</label>
-          <input id="createProductBrandId" type="number" placeholder="Optional" />
+          <label>Brand Name</label>
+          <input id="productBrandName" />
 
           <label>Product Name</label>
-          <input id="createProductName" type="text" required />
+          <input id="productName" required />
 
           <label>Description</label>
-          <textarea id="createProductDescription"></textarea>
+          <textarea id="productDescription"></textarea>
 
           <label>Main Image Key</label>
-          <input id="createProductImage" type="text" placeholder="products/shoe.jpg" />
+          <input id="productImage" placeholder="products/shoe.jpg" />
 
           <label>Status</label>
-          <select id="createProductStatus">
+          <select id="productStatus">
             <option value="active">active</option>
             <option value="inactive">inactive</option>
             <option value="draft">draft</option>
+          </select>
+
+          <label>Is Active</label>
+          <select id="productIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
           </select>
 
           <button type="submit">Create Product</button>
         </form>
+
+        <hr />
+
+        <h3>View Products</h3>
+
+        <div class="search-row">
+          <input id="productSearchId" type="number" placeholder="Search product by ID" />
+          <button onclick="searchProduct()">Search</button>
+          <button onclick="loadProducts()">View All Active</button>
+        </div>
+
+        <div id="productList" class="list"></div>
       </div>
     </section>
 
-    <section id="updateProductPage" class="page hidden">
+    <!-- VARIANT PAGE -->
+    <section id="variantPage" class="page hidden">
       <div class="card">
-        <h2>Update Product</h2>
+        <h2>Product Variants</h2>
 
-        <form id="updateProductForm">
+        <h3>Create Product Variant</h3>
+
+        <form id="variantForm">
           <label>Product ID</label>
-          <input id="updateProductId" type="number" required />
-
-          <label>Category ID</label>
-          <input id="updateProductCategoryId" type="number" required />
-
-          <label>Brand ID</label>
-          <input id="updateProductBrandId" type="number" placeholder="Optional" />
-
-          <label>Product Name</label>
-          <input id="updateProductName" type="text" required />
-
-          <label>Description</label>
-          <textarea id="updateProductDescription"></textarea>
-
-          <label>Main Image Key</label>
-          <input id="updateProductImage" type="text" />
-
-          <label>Status</label>
-          <select id="updateProductStatus">
-            <option value="active">active</option>
-            <option value="inactive">inactive</option>
-            <option value="draft">draft</option>
-          </select>
-
-          <button type="submit">Update Product</button>
-        </form>
-      </div>
-    </section>
-
-    <section id="deleteProductPage" class="page hidden">
-      <div class="card">
-        <h2>Delete Product</h2>
-
-        <form id="deleteProductForm">
-          <label>Product ID</label>
-          <input id="deleteProductId" type="number" required />
-
-          <button type="submit" class="delete-btn">Delete Product</button>
-        </form>
-      </div>
-    </section>
-
-    <!--  VARIANT PAGES  -->
-
-    <section id="createVariantPage" class="page hidden">
-      <div class="card">
-        <h2>Create Product Variant</h2>
-
-        <form id="createVariantForm">
-          <label>Product ID</label>
-          <input id="createVariantProductId" type="number" required />
+          <input id="variantProductId" type="number" required />
 
           <label>SKU</label>
-          <input id="createVariantSku" type="text" required />
+          <input id="variantSku" required />
 
           <label>Color</label>
-          <input id="createVariantColor" type="text" />
+          <input id="variantColor" />
 
           <label>Size</label>
-          <input id="createVariantSize" type="text" />
+          <input id="variantSize" />
 
           <label>Price</label>
-          <input id="createVariantPrice" type="number" step="0.01" />
+          <input id="variantPrice" type="number" step="0.01" />
 
-          <label>Active</label>
-          <select id="createVariantActive">
+          <label>Is Active</label>
+          <select id="variantIsActive">
             <option value="true">true</option>
             <option value="false">false</option>
           </select>
 
           <button type="submit">Create Variant</button>
         </form>
+
+        <hr />
+
+        <h3>View Variants</h3>
+
+        <div class="search-row">
+          <input id="variantSearchProductId" type="number" placeholder="View variants by product ID" />
+          <button onclick="searchVariantsByProduct()">Search</button>
+        </div>
+
+        <div id="variantList" class="list"></div>
       </div>
     </section>
 
-    <section id="updateVariantPage" class="page hidden">
-      <div class="card">
-        <h2>Update Product Variant</h2>
-
-        <form id="updateVariantForm">
-          <label>Variant ID</label>
-          <input id="updateVariantId" type="number" required />
-
-          <label>Product ID</label>
-          <input id="updateVariantProductId" type="number" required />
-
-          <label>SKU</label>
-          <input id="updateVariantSku" type="text" required />
-
-          <label>Color</label>
-          <input id="updateVariantColor" type="text" />
-
-          <label>Size</label>
-          <input id="updateVariantSize" type="text" />
-
-          <label>Price</label>
-          <input id="updateVariantPrice" type="number" step="0.01" />
-
-          <label>Active</label>
-          <select id="updateVariantActive">
-            <option value="true">true</option>
-            <option value="false">false</option>
-          </select>
-
-          <button type="submit">Update Variant</button>
-        </form>
-      </div>
-    </section>
-
-    <section id="deleteVariantPage" class="page hidden">
-      <div class="card">
-        <h2>Delete Product Variant</h2>
-
-        <form id="deleteVariantForm">
-          <label>Variant ID</label>
-          <input id="deleteVariantId" type="number" required />
-
-          <button type="submit" class="delete-btn">Delete Variant</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- OTHER SERVICE PAGES -->
-
+    <!-- FUTURE PAGES -->
     <section id="itemPage" class="page hidden">
       <div class="card">
         <h2>Item Services</h2>
+        <p>This page will be added later.</p>
       </div>
     </section>
 
     <section id="inboundPage" class="page hidden">
       <div class="card">
         <h2>Inbound Services</h2>
+        <p>This page will be added later.</p>
       </div>
     </section>
 
     <section id="inventoryPage" class="page hidden">
       <div class="card">
         <h2>Inventory</h2>
+        <p>This page will be added later.</p>
       </div>
     </section>
-
   </main>
+
+  <!-- UPDATE POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-box">
+      <h2 id="popupTitle">Update</h2>
+
+      <form id="popupForm">
+        <div id="popupFields"></div>
+
+        <div class="popup-buttons">
+          <button type="submit">Save Update</button>
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>
