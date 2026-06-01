@@ -34,6 +34,8 @@ async function sendData(url, method, data) {
     body: JSON.stringify(data)
   });
 
+  
+
   if (response.ok) {
     showMessage("Action completed successfully");
   } else {
