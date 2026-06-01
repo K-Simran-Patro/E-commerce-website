@@ -19,7 +19,10 @@
         <input id="loginEmail" type="email" required />
 
         <label>Password</label>
-        <input id="loginPassword" type="password" required />
+        <div class="password-box">
+          <input id="loginPassword" type="password" required />
+          <span class="eye-icon" onclick="togglePassword('loginPassword', this)">🙈</span>
+        </div>
 
         <button type="submit">Login</button>
       </form>

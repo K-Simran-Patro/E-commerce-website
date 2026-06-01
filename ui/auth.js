@@ -76,10 +76,10 @@ function togglePassword(inputId, icon) {
 
   if (input.type === "password") {
     input.type = "text";
-    icon.textContent = "🙈";
+    icon.textContent = "👁️";   // open eye means password is visible
   } else {
     input.type = "password";
-    icon.textContent = "👁️";
+    icon.textContent = "🙈";   // closed eye means password is hidden
   }
 }
 
