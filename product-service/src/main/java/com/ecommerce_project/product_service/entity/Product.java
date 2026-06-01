@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -30,8 +31,8 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @Column(name = "brand_id")
-    private Long brandId;
+    @Column(name = "brand_name", length = 100)
+    private String brandName; 
 
     @Column(name = "name", length = 500, nullable = false)
     private String name;
@@ -48,6 +49,16 @@ public class Product {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "created_by", updatable = false)
+    private String createdBy;
+
+    @UpdateTimestamp
+    @Column(name = "modified_at")
+    private LocalDateTime modifiedAt;
+
+    @Column(name = "modified_by")
+    private String modifiedBy;
 
     @JsonIgnore // To prevent infinite recursion during JSON serialization
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
