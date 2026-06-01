@@ -41,7 +41,7 @@ public class ProductService {
         }
 
         // Check if product name already exists in same category
-        if (productRepository.existsByNameAndCategoryId(request.getName(), request.getCategoryId())) {
+        if (productRepository.existsByNameAndCategoryCategoryId(request.getName(), request.getCategoryId())) {
             throw new RuntimeException("Product already exists in this category: " + request.getName());
         }
 
@@ -104,7 +104,7 @@ public class ProductService {
         }
 
         // Check if product name already exists in same category for another product
-        if (productRepository.existsByNameAndCategoryIdAndProductIdNot(request.getName(), request.getCategoryId(), request.getProductId())) {
+        if (productRepository.existsByNameAndCategoryCategoryIdAndProductIdNot(request.getName(), request.getCategoryId(), request.getProductId())) {
             throw new RuntimeException("Product already exists in this category: " + request.getName());
         }
 
