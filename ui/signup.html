@@ -25,7 +25,16 @@
         <input id="signupPhone" type="text" />
 
         <label>Password</label>
-        <input id="signupPassword" type="password" required />
+        <div class="password-box">
+          <input id="signupPassword" type="password" required />
+          <span class="eye-icon" onclick="togglePassword('signupPassword', this)">👁️</span>
+        </div>
+
+        <label>Confirm Password</label>
+        <div class="password-box">
+          <input id="signupConfirmPassword" type="password" required />
+          <span class="eye-icon" onclick="togglePassword('signupConfirmPassword', this)">👁️</span>
+        </div>
 
         <button type="submit">Signup</button>
       </form>

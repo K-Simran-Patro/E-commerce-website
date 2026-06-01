@@ -22,11 +22,21 @@ if (signupForm) {
   signupForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
+    const password = document.getElementById("signupPassword").value;
+    const confirmPassword = document.getElementById("signupConfirmPassword").value;
+
+    if (password !== confirmPassword) {
+      document.getElementById("signupMessage").style.color = "#dc2626";
+      document.getElementById("signupMessage").innerText =
+        "Password and Confirm Password do not match.";
+      return;
+    }
+
     const data = {
       fullName: document.getElementById("signupFullName").value,
       email: document.getElementById("signupEmail").value,
       phone: document.getElementById("signupPhone").value,
-      password: document.getElementById("signupPassword").value
+      password: password
     };
 
     try {
@@ -50,13 +60,27 @@ if (signupForm) {
         }, 1500);
       } else {
         const errorText = await response.text();
+        document.getElementById("signupMessage").style.color = "#dc2626";
         document.getElementById("signupMessage").innerText = errorText;
       }
     } catch (error) {
+      document.getElementById("signupMessage").style.color = "#dc2626";
       document.getElementById("signupMessage").innerText =
         "Signup failed. Please try again.";
     }
   });
+}
+
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "🙈";
+  } else {
+    input.type = "password";
+    icon.textContent = "👁️";
+  }
 }
 
 // LOGIN
