@@ -9,9 +9,9 @@ import lombok.AllArgsConstructor;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductRequestDTO {
+public class ProductResponseDTO {
 
-    private Long productId;      // used for update and delete
+    private Long productId;
     private Long categoryId;
     private String brandName;
     private String name;

@@ -43,8 +43,8 @@ public class Product {
     @Column(name = "main_image_key", length = 500)
     private String mainImageKey;
 
-    @Column(name = "status", length = 20)
-    private String status = "active";
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
