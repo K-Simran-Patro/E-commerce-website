@@ -3,6 +3,7 @@ package com.ecommerce_project.product_service.controller;
 import com.ecommerce_project.product_service.dto.product.ProductRequestDTO;
 import com.ecommerce_project.product_service.dto.product.ProductResponseDTO;
 import com.ecommerce_project.product_service.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ public class ProductController {
     // Create new product
     @PostMapping
     public ProductResponseDTO createProduct(
-            @RequestBody ProductRequestDTO request,
+            @Valid @RequestBody ProductRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return productService.createProduct(request, username);
     }
@@ -38,7 +39,7 @@ public class ProductController {
     // Update product - id comes from request body
     @PutMapping
     public ProductResponseDTO updateProduct(
-            @RequestBody ProductRequestDTO request,
+            @Valid @RequestBody ProductRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return productService.updateProduct(request, username);
     }

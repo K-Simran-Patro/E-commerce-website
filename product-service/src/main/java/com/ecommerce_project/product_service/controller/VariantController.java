@@ -3,6 +3,7 @@ package com.ecommerce_project.product_service.controller;
 import com.ecommerce_project.product_service.dto.variant.VariantRequestDTO;
 import com.ecommerce_project.product_service.dto.variant.VariantResponseDTO;
 import com.ecommerce_project.product_service.service.VariantService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,7 @@ public class VariantController {
     // Create new variant
     @PostMapping("/variants")
     public VariantResponseDTO createVariant(
-            @RequestBody VariantRequestDTO request,
+            @Valid @RequestBody VariantRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return variantService.createVariant(request, username);
     }
@@ -32,7 +33,7 @@ public class VariantController {
     // Update variant - id comes from request body
     @PutMapping("/variants")
     public VariantResponseDTO updateVariant(
-            @RequestBody VariantRequestDTO request,
+            @Valid @RequestBody VariantRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return variantService.updateVariant(request, username);
     }

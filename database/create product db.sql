@@ -49,3 +49,10 @@ ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN created_by VARCHAR(100),
 ADD COLUMN modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 ADD COLUMN modified_by VARCHAR(100);
+
+
+
+
+ALTER TABLE public.categories       SET SCHEMA product_schema;
+ALTER TABLE public.products         SET SCHEMA product_schema;
+ALTER TABLE public.product_variants SET SCHEMA product_schema;

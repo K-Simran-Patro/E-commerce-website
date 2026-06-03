@@ -17,7 +17,7 @@ public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    // ===================== CREATE =====================
+    // CREATE 
     public CategoryResponseDTO createCategory(CategoryRequestDTO request, String username) {
 
         // Check name is not empty
@@ -55,7 +55,7 @@ public class CategoryService {
         return mapToResponseDTO(savedCategory);
     }
 
-    // ===================== GET ALL =====================
+    // GET ALL 
     public List<CategoryResponseDTO> getAllCategories() {
 
         List<Category> categories = categoryRepository.findAll();
@@ -68,7 +68,7 @@ public class CategoryService {
         return responseDTOs;
     }
 
-    // ===================== GET BY ID =====================
+    // GET BY ID
     public CategoryResponseDTO getCategoryById(Long id) {
 
         if (!categoryRepository.existsById(id)) {
@@ -79,7 +79,7 @@ public class CategoryService {
         return mapToResponseDTO(category);
     }
 
-    // ===================== UPDATE =====================
+    // UPDATE 
     public CategoryResponseDTO updateCategory(CategoryRequestDTO request, String username) {
 
         // Check categoryId is provided
@@ -127,7 +127,7 @@ public class CategoryService {
         return mapToResponseDTO(updatedCategory);
     }
 
-    // ===================== DELETE =====================
+    // DELETE
     public String deleteCategory(CategoryRequestDTO request, String username) {
 
         // Check categoryId is provided
@@ -154,7 +154,7 @@ public class CategoryService {
         return "Category deleted successfully";
     }
 
-    // ===================== HELPER - Map Entity to ResponseDTO =====================
+    // HELPER - Map Entity to ResponseDTO 
     private CategoryResponseDTO mapToResponseDTO(Category category) {
 
         CategoryResponseDTO responseDTO = new CategoryResponseDTO();

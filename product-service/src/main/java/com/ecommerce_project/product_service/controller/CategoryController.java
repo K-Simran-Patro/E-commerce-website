@@ -3,6 +3,9 @@ package com.ecommerce_project.product_service.controller;
 import com.ecommerce_project.product_service.dto.category.CategoryRequestDTO;
 import com.ecommerce_project.product_service.dto.category.CategoryResponseDTO;
 import com.ecommerce_project.product_service.service.CategoryService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +21,7 @@ public class CategoryController {
     // Create new category
     @PostMapping
     public CategoryResponseDTO createCategory(
-            @RequestBody CategoryRequestDTO request,
+            @Valid@RequestBody CategoryRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return categoryService.createCategory(request, username);
     }
@@ -38,7 +41,7 @@ public class CategoryController {
     // Update category - id comes from request body
     @PutMapping
     public CategoryResponseDTO updateCategory(
-            @RequestBody CategoryRequestDTO request,
+            @Valid@RequestBody CategoryRequestDTO request,
             @RequestHeader("X-User-Name") String username) {
         return categoryService.updateCategory(request, username);
     }
