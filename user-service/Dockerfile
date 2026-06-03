@@ -4,4 +4,4 @@ COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 EXPOSE 8081
-ENTRYPOINT ["java", "-jar", "target/user-service-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "target/user_service-0.0.1-SNAPSHOT.jar"]
