@@ -39,6 +39,12 @@ public class SecurityConfig {
         // run JWT filter before every request
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
+        // swagger should be public
+        http.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/auth/register", "/auth/login").permitAll()
+        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+        .anyRequest().authenticated());
+
         return http.build();
     }
 
