@@ -1,46 +1,69 @@
 const API_URL = "https://e-commerce-website-620c.onrender.com";
 
-/*
-Expected backend APIs:
+/* ================= PASSWORD EYE TOGGLE ================= */
 
-POST /api/auth/signup
-POST /api/auth/login
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
 
-Login response should return:
-{
-  "token": "jwt-token-here",
-  "userId": "uuid-here",
-  "email": "admin@example.com",
-  "role": "ADMIN"
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "👁️"; // visible
+  } else {
+    input.type = "password";
+    icon.textContent = "🙈"; // hidden
+  }
 }
-*/
 
-// SIGNUP
+/* ================= MESSAGE HELPERS ================= */
+
+function showSignupMessage(text, color) {
+  const messageBox = document.getElementById("signupMessage");
+
+  if (messageBox) {
+    messageBox.style.color = color;
+    messageBox.innerText = text;
+  }
+}
+
+function showLoginMessage(text, color) {
+  const messageBox = document.getElementById("loginMessage");
+
+  if (messageBox) {
+    messageBox.style.color = color;
+    messageBox.innerText = text;
+  }
+}
+
+/* ================= SIGNUP ================= */
+
 const signupForm = document.getElementById("signupForm");
 
 if (signupForm) {
-  signupForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  signupForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
+    const fullName = document.getElementById("signupFullName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const phone = document.getElementById("signupPhone").value.trim();
     const password = document.getElementById("signupPassword").value;
     const confirmPassword = document.getElementById("signupConfirmPassword").value;
 
     if (password !== confirmPassword) {
-      document.getElementById("signupMessage").style.color = "#dc2626";
-      document.getElementById("signupMessage").innerText =
-        "Password and Confirm Password do not match.";
+      showSignupMessage("Password and Confirm Password do not match.", "red");
       return;
     }
 
     const data = {
-      fullName: document.getElementById("signupFullName").value,
-      email: document.getElementById("signupEmail").value,
-      phone: document.getElementById("signupPhone").value,
+      fullName: fullName,
+      email: email,
+      phone: phone,
       password: password
     };
 
     try {
-      const response = await fetch(API_URL + "/api/auth/signup", {
+      showSignupMessage("Creating account...", "#2563eb");
+
+      const response = await fetch(API_URL + "/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -48,10 +71,19 @@ if (signupForm) {
         body: JSON.stringify(data)
       });
 
+      const responseText = await response.text();
+
+      let message = "";
+
+      try {
+        const json = JSON.parse(responseText);
+        message = json.message || responseText;
+      } catch {
+        message = responseText;
+      }
+
       if (response.ok) {
-        document.getElementById("signupMessage").style.color = "green";
-        document.getElementById("signupMessage").innerText =
-          "Signup successful. Please login.";
+        showSignupMessage(message || "Signup successful. Please login.", "green");
 
         signupForm.reset();
 
@@ -59,44 +91,33 @@ if (signupForm) {
           window.location.href = "login.html";
         }, 1500);
       } else {
-        const errorText = await response.text();
-        document.getElementById("signupMessage").style.color = "#dc2626";
-        document.getElementById("signupMessage").innerText = errorText;
+        showSignupMessage(message || "Signup failed.", "red");
       }
+
     } catch (error) {
-      document.getElementById("signupMessage").style.color = "#dc2626";
-      document.getElementById("signupMessage").innerText =
-        "Signup failed. Please try again.";
+      showSignupMessage("Unable to connect to server. Check backend/CORS.", "red");
+      console.error(error);
     }
   });
 }
 
-function togglePassword(inputId, icon) {
-  const input = document.getElementById(inputId);
+/* ================= LOGIN ================= */
 
-  if (input.type === "password") {
-    input.type = "text";
-    icon.textContent = "👁️";   // open eye means password is visible
-  } else {
-    input.type = "password";
-    icon.textContent = "🙈";   // closed eye means password is hidden
-  }
-}
-
-// LOGIN
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
-  loginForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  loginForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
     const data = {
-      email: document.getElementById("loginEmail").value,
+      email: document.getElementById("loginEmail").value.trim(),
       password: document.getElementById("loginPassword").value
     };
 
     try {
-      const response = await fetch(API_URL + "/api/auth/login", {
+      showLoginMessage("Logging in...", "#2563eb");
+
+      const response = await fetch(API_URL + "/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -104,18 +125,27 @@ if (loginForm) {
         body: JSON.stringify(data)
       });
 
+      const responseText = await response.text();
+
+      let result = {};
+      let message = "";
+
+      try {
+        result = JSON.parse(responseText);
+        message = result.message || "";
+      } catch {
+        message = responseText;
+      }
+
       if (!response.ok) {
-        const errorText = await response.text();
-        document.getElementById("loginMessage").innerText = errorText;
+        showLoginMessage(message || "Login failed.", "red");
         return;
       }
 
-      const result = await response.json();
-
-      localStorage.setItem("authToken", result.token);
-      localStorage.setItem("adminUserId", result.userId);
-      localStorage.setItem("userEmail", result.email);
-      localStorage.setItem("userRole", result.role);
+      localStorage.setItem("authToken", result.token || "");
+      localStorage.setItem("adminUserId", result.userId || "");
+      localStorage.setItem("userEmail", result.email || data.email);
+      localStorage.setItem("userRole", result.role || "");
 
       if (result.role === "ADMIN") {
         window.location.href = "admin.html";
@@ -124,8 +154,8 @@ if (loginForm) {
       }
 
     } catch (error) {
-      document.getElementById("loginMessage").innerText =
-        "Login failed. Please try again.";
+      showLoginMessage("Unable to connect to server. Check backend/CORS.", "red");
+      console.error(error);
     }
   });
 }

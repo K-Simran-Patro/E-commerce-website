@@ -1,9 +1,7 @@
 package com.ecommerce_project.user_service.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +10,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -29,6 +31,18 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        String path = request.getServletPath();
+
+        if (request.getMethod().equals("OPTIONS")
+            || path.equals("/auth/register")
+            || path.equals("/auth/login")
+            || path.startsWith("/swagger-ui")
+            || path.startsWith("/v3/api-docs")) {
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
 
         String authHeader = request.getHeader("Authorization");
 
