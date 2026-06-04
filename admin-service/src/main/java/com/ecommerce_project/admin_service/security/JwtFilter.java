@@ -65,7 +65,7 @@ public class JwtFilter extends OncePerRequestFilter {
         logger.info("Authenticated user: {}, role: {}, path: {}", username, role, path);
 
         // ─── Check role is ADMIN ───────────────────────────
-        if (!"ADMIN".equals(role)) {
+        if (!"ADMIN".equalsIgnoreCase(role)) {
             logger.warn("Access denied for user: {} with role: {}", username, role);
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied. Admins only.");
             return;
