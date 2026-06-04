@@ -32,6 +32,26 @@ function togglePassword(inputId, icon) {
 }
 
 /* SIGNUP API CONNECTION */
+const API_URL = "https://e-commerce-website-620c.onrender.com";
+
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "👁️";
+  } else {
+    input.type = "password";
+    icon.textContent = "🙈";
+  }
+}
+
+function showSignupMessage(text, color) {
+  const messageBox = document.getElementById("signupMessage");
+  messageBox.style.color = color;
+  messageBox.innerText = text;
+}
+
 const signupForm = document.getElementById("signupForm");
 
 if (signupForm) {
@@ -44,11 +64,8 @@ if (signupForm) {
     const password = document.getElementById("signupPassword").value;
     const confirmPassword = document.getElementById("signupConfirmPassword").value;
 
-    const messageBox = document.getElementById("signupMessage");
-
     if (password !== confirmPassword) {
-      messageBox.style.color = "red";
-      messageBox.innerText = "Password and Confirm Password do not match.";
+      showSignupMessage("Password and Confirm Password do not match.", "red");
       return;
     }
 
@@ -60,6 +77,8 @@ if (signupForm) {
     };
 
     try {
+      showSignupMessage("Creating account...", "#2563eb");
+
       const response = await fetch(API_URL + "/auth/register", {
         method: "POST",
         headers: {
@@ -68,11 +87,19 @@ if (signupForm) {
         body: JSON.stringify(data)
       });
 
-      const result = await response.json();
+      const responseText = await response.text();
+
+      let message = "";
+
+      try {
+        const json = JSON.parse(responseText);
+        message = json.message || responseText;
+      } catch {
+        message = responseText;
+      }
 
       if (response.ok) {
-        messageBox.style.color = "green";
-        messageBox.innerText = result.message || "Signup successful. Please login.";
+        showSignupMessage(message || "Signup successful. Please login.", "green");
 
         signupForm.reset();
 
@@ -80,13 +107,12 @@ if (signupForm) {
           window.location.href = "login.html";
         }, 1500);
       } else {
-        messageBox.style.color = "red";
-        messageBox.innerText = result.message || "Signup failed.";
+        showSignupMessage(message || "Signup failed.", "red");
       }
 
     } catch (error) {
-      messageBox.style.color = "red";
-      messageBox.innerText = "Unable to connect to server.";
+      showSignupMessage("Unable to connect to server. Check backend/CORS.", "red");
+      console.error(error);
     }
   });
 }
