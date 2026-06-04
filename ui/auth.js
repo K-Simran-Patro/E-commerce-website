@@ -16,31 +16,51 @@ Login response should return:
 */
 
 // SIGNUP
+const API_URL = "https://e-commerce-website-620c.onrender.com";
+
+/* Eye toggle for password fields */
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "👁️"; // visible
+  } else {
+    input.type = "password";
+    icon.textContent = "🙈"; // hidden
+  }
+}
+
+/* SIGNUP API CONNECTION */
 const signupForm = document.getElementById("signupForm");
 
 if (signupForm) {
-  signupForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
+  signupForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
+    const fullName = document.getElementById("signupFullName").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const phone = document.getElementById("signupPhone").value.trim();
     const password = document.getElementById("signupPassword").value;
     const confirmPassword = document.getElementById("signupConfirmPassword").value;
 
+    const messageBox = document.getElementById("signupMessage");
+
     if (password !== confirmPassword) {
-      document.getElementById("signupMessage").style.color = "#dc2626";
-      document.getElementById("signupMessage").innerText =
-        "Password and Confirm Password do not match.";
+      messageBox.style.color = "red";
+      messageBox.innerText = "Password and Confirm Password do not match.";
       return;
     }
 
     const data = {
-      fullName: document.getElementById("signupFullName").value,
-      email: document.getElementById("signupEmail").value,
-      phone: document.getElementById("signupPhone").value,
+      fullName: fullName,
+      email: email,
+      phone: phone,
       password: password
     };
 
     try {
-      const response = await fetch(API_URL + "/api/auth/signup", {
+      const response = await fetch(API_URL + "/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -48,10 +68,11 @@ if (signupForm) {
         body: JSON.stringify(data)
       });
 
+      const result = await response.json();
+
       if (response.ok) {
-        document.getElementById("signupMessage").style.color = "green";
-        document.getElementById("signupMessage").innerText =
-          "Signup successful. Please login.";
+        messageBox.style.color = "green";
+        messageBox.innerText = result.message || "Signup successful. Please login.";
 
         signupForm.reset();
 
@@ -59,14 +80,13 @@ if (signupForm) {
           window.location.href = "login.html";
         }, 1500);
       } else {
-        const errorText = await response.text();
-        document.getElementById("signupMessage").style.color = "#dc2626";
-        document.getElementById("signupMessage").innerText = errorText;
+        messageBox.style.color = "red";
+        messageBox.innerText = result.message || "Signup failed.";
       }
+
     } catch (error) {
-      document.getElementById("signupMessage").style.color = "#dc2626";
-      document.getElementById("signupMessage").innerText =
-        "Signup failed. Please try again.";
+      messageBox.style.color = "red";
+      messageBox.innerText = "Unable to connect to server.";
     }
   });
 }
