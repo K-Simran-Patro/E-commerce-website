@@ -32,7 +32,9 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
 
         // ─── Skip filter for login and register ───────────
-        if (path.startsWith("/auth")) {
+        if (path.startsWith("/auth") ||
+            path.startsWith("/swagger-ui") ||
+            path.startsWith("/api-docs")) {
             filterChain.doFilter(request, response);
             return;
         }
