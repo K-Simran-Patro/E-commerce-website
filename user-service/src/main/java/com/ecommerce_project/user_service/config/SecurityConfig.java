@@ -33,6 +33,7 @@ public class SecurityConfig {
 
         // disable csrf — not needed for JWT
         http.csrf(csrf -> csrf.disable());
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         // enable CORS for Vercel frontend
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -45,6 +46,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
 
                 // allow browser preflight request
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // allow signup and login without token
