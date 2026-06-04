@@ -1,55 +1,59 @@
+/* ================= ADMIN PAGE PROTECTION ================= */
+
+// Only ADMIN users should open admin.html.
+// Login page should store userRole in localStorage after successful login.
+if (localStorage.getItem("userRole") !== "ADMIN") {
+  window.location.href = "login.html";
+}
+
 /* ================= BASIC SETTINGS ================= */
 
 let editType = "";
 let editId = null;
 
+const DEFAULT_ADMIN_SERVICE_URL = "https://e-commerce-website-admin-service.onrender.com";
+
 function apiUrl() {
-  return document.getElementById("apiUrl").value.trim();
+  const input = document.getElementById("apiUrl");
+
+  if (input && input.value.trim()) {
+    return input.value.trim();
+  }
+
+  return DEFAULT_ADMIN_SERVICE_URL;
 }
 
 function adminUserId() {
-  return document.getElementById("adminUserId").value.trim();
+  return localStorage.getItem("adminUserId") || "";
 }
 
 function authToken() {
-  return document.getElementById("authToken").value.trim();
-}
-
-function saveAuth() {
-  localStorage.setItem("apiUrl", apiUrl());
-  localStorage.setItem("adminUserId", adminUserId());
-  localStorage.setItem("authToken", authToken());
-  showMessage("Auth details saved");
-}
-
-function loadAuth() {
-  if (localStorage.getItem("apiUrl")) {
-    document.getElementById("apiUrl").value = localStorage.getItem("apiUrl");
-  }
-
-  if (localStorage.getItem("adminUserId")) {
-    document.getElementById("adminUserId").value = localStorage.getItem("adminUserId");
-  }
-
-  if (localStorage.getItem("authToken")) {
-    document.getElementById("authToken").value = localStorage.getItem("authToken");
-  }
+  return localStorage.getItem("authToken") || "";
 }
 
 function showMessage(text) {
-  document.getElementById("message").innerText = text;
+  const messageBox = document.getElementById("message");
+
+  if (messageBox) {
+    messageBox.innerText = text;
+  }
 }
 
 function showPage(id) {
-  document.querySelectorAll(".page").forEach(function(page) {
+  document.querySelectorAll(".page").forEach(function (page) {
     page.classList.add("hidden");
   });
 
   document.getElementById(id).classList.remove("hidden");
   showMessage("");
 
-  if (id === "categoryPage") loadCategories();
-  if (id === "productPage") loadProducts();
+  if (id === "categoryPage") {
+    loadCategories();
+  }
+
+  if (id === "productPage") {
+    loadProducts();
+  }
 }
 
 function logout() {
@@ -60,23 +64,12 @@ function logout() {
 /* ================= API HELPERS ================= */
 
 function getHeaders() {
-  let token = authToken();
+  const token = authToken();
 
-  let headers = {
+  const headers = {
     "Content-Type": "application/json"
   };
 
-  /*
-    AUTHENTICATION / AUTHORIZATION:
-    This supports both:
-    Option A: Spring Boot JWT
-    Option B: Supabase Auth JWT
-
-    Both are sent like:
-    Authorization: Bearer TOKEN_HERE
-
-    Backend must verify this token and check admin role.
-  */
   if (token) {
     headers["Authorization"] = "Bearer " + token;
   }
@@ -85,86 +78,75 @@ function getHeaders() {
 }
 
 async function apiGet(path) {
-  let response = await fetch(apiUrl() + path, {
+  const response = await fetch(apiUrl() + path, {
     method: "GET",
     headers: getHeaders()
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw new Error(responseText || "Request failed");
   }
 
-  return response.json();
+  if (!responseText) {
+    return null;
+  }
+
+  return JSON.parse(responseText);
 }
 
 async function apiSend(path, method, data) {
-  let response = await fetch(apiUrl() + path, {
+  const response = await fetch(apiUrl() + path, {
     method: method,
     headers: getHeaders(),
     body: JSON.stringify(data)
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw new Error(responseText || "Request failed");
+  }
+
+  if (!responseText) {
+    return null;
   }
 
   try {
-    return await response.json();
+    return JSON.parse(responseText);
   } catch {
-    return await response.text();
+    return responseText;
   }
 }
 
 async function apiDelete(path) {
-  let response = await fetch(apiUrl() + path, {
+  const response = await fetch(apiUrl() + path, {
     method: "DELETE",
     headers: getHeaders()
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    throw new Error(await response.text());
+    throw new Error(responseText || "Delete failed");
   }
 
-  return response.text();
+  return responseText;
 }
-
-/*
-  IMPORTANT:
-  Your admin-service API paths are not created yet.
-  Once ready, change these paths here if needed.
-
-  Current assumed paths:
-  Categories:
-  GET    /api/admin/categories
-  GET    /api/admin/categories/{id}
-  POST   /api/admin/categories
-  PUT    /api/admin/categories/{id}
-  DELETE /api/admin/categories/{id}
-
-  Products:
-  GET    /api/admin/products
-  GET    /api/admin/products/{id}
-  POST   /api/admin/products
-  PUT    /api/admin/products/{id}
-  DELETE /api/admin/products/{id}
-
-  Variants:
-  GET    /api/admin/products/{productId}/variants
-  POST   /api/admin/products/{productId}/variants
-  PUT    /api/admin/variants/{variantId}
-  DELETE /api/admin/variants/{variantId}
-*/
 
 /* ================= VALIDATION ================= */
 
 function checkAuth() {
-  if (!adminUserId()) {
-    showMessage("Please enter Admin User ID");
+  if (!authToken()) {
+    showMessage("Please login again. Auth token is missing.");
+    window.location.href = "login.html";
     return false;
   }
 
-  if (!authToken()) {
-    showMessage("Please enter auth token");
+  if (!adminUserId()) {
+    showMessage("User ID missing. Please login again.");
+    window.location.href = "login.html";
     return false;
   }
 
@@ -172,28 +154,28 @@ function checkAuth() {
 }
 
 function isEmpty(value) {
-  return value === null || value === undefined || value.trim() === "";
+  return value === null || value === undefined || String(value).trim() === "";
 }
 
 /* ================= CATEGORIES ================= */
 
 let categoryData = [];
 
-document.getElementById("categoryForm").addEventListener("submit", async function(e) {
+document.getElementById("categoryForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   if (!checkAuth()) return;
 
-  let name = document.getElementById("categoryName").value;
-  let slug = document.getElementById("categorySlug").value;
-  let parentId = document.getElementById("categoryParentId").value;
+  const name = document.getElementById("categoryName").value.trim();
+  const slug = document.getElementById("categorySlug").value.trim();
+  const parentId = document.getElementById("categoryParentId").value;
 
   if (isEmpty(name) || isEmpty(slug)) {
-    showMessage("Category name and slug are required");
+    showMessage("Category name and slug are required.");
     return;
   }
 
-  let data = {
+  const data = {
     parentId: parentId ? Number(parentId) : null,
     name: name,
     slug: slug,
@@ -203,8 +185,8 @@ document.getElementById("categoryForm").addEventListener("submit", async functio
   };
 
   try {
-    await apiSend("/api/admin/categories", "POST", data);
-    showMessage("Category created");
+    await apiSend("/admin/categories", "POST", data);
+    showMessage("Category created successfully.");
     this.reset();
     loadCategories();
   } catch (error) {
@@ -214,9 +196,9 @@ document.getElementById("categoryForm").addEventListener("submit", async functio
 
 async function loadCategories() {
   try {
-    let data = await apiGet("/api/admin/categories");
+    const data = await apiGet("/admin/categories");
 
-    categoryData = data.filter(function(category) {
+    categoryData = (data || []).filter(function (category) {
       return category.isActive === true;
     });
 
@@ -227,21 +209,21 @@ async function loadCategories() {
 }
 
 async function searchCategory() {
-  let id = document.getElementById("categorySearchId").value;
+  const id = document.getElementById("categorySearchId").value;
 
   if (!id) {
-    showMessage("Enter category ID to search");
+    showMessage("Enter category ID to search.");
     return;
   }
 
   try {
-    let category = await apiGet("/api/admin/categories/" + id);
+    const category = await apiGet("/admin/categories/" + id);
 
-    if (category.isActive === true) {
+    if (category && category.isActive === true) {
       showCategories([category]);
     } else {
       showCategories([]);
-      showMessage("Category is inactive or not visible");
+      showMessage("Category is inactive or not found.");
     }
   } catch (error) {
     showMessage(error.message);
@@ -249,21 +231,21 @@ async function searchCategory() {
 }
 
 function showCategories(data) {
-  let box = document.getElementById("categoryList");
+  const box = document.getElementById("categoryList");
   box.innerHTML = "";
 
-  if (data.length === 0) {
-    box.innerHTML = "<p>No active categories found</p>";
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active categories found.</p>";
     return;
   }
 
-  data.forEach(function(category) {
+  data.forEach(function (category) {
     box.innerHTML += `
       <div class="item">
-        <h4>${category.name}</h4>
+        <h4>${category.name || "-"}</h4>
         <p><b>ID:</b> ${category.categoryId}</p>
         <p><b>Parent ID:</b> ${category.parentId || "-"}</p>
-        <p><b>Slug:</b> ${category.slug}</p>
+        <p><b>Slug:</b> ${category.slug || "-"}</p>
         <p><b>Created By:</b> ${category.createdBy || "-"}</p>
         <p><b>Modified By:</b> ${category.modifiedBy || "-"}</p>
 
@@ -282,7 +264,7 @@ function showCategories(data) {
 }
 
 function hasChildCategory(categoryId) {
-  return categoryData.some(function(category) {
+  return categoryData.some(function (category) {
     return Number(category.parentId) === Number(categoryId);
   });
 }
@@ -298,10 +280,10 @@ function openCategoryPopup(category) {
     <input id="editCategoryParentId" type="number" value="${category.parentId || ""}" />
 
     <label>Category Name</label>
-    <input id="editCategoryName" value="${category.name}" />
+    <input id="editCategoryName" value="${category.name || ""}" />
 
     <label>Slug</label>
-    <input id="editCategorySlug" value="${category.slug}" />
+    <input id="editCategorySlug" value="${category.slug || ""}" />
 
     <label>Is Active</label>
     <select id="editCategoryIsActive">
@@ -324,8 +306,8 @@ async function deleteCategory(id) {
   if (!confirm("Delete this category?")) return;
 
   try {
-    await apiDelete("/api/admin/categories/" + id);
-    showMessage("Category deleted");
+    await apiDelete("/admin/categories/" + id);
+    showMessage("Category deleted successfully.");
     loadCategories();
   } catch (error) {
     showMessage(error.message);
@@ -336,22 +318,23 @@ async function deleteCategory(id) {
 
 let productData = [];
 
-document.getElementById("productForm").addEventListener("submit", async function(e) {
+document.getElementById("productForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   if (!checkAuth()) return;
 
-  let name = document.getElementById("productName").value;
-  let categoryId = document.getElementById("productCategoryId").value;
+  const name = document.getElementById("productName").value.trim();
+  const categoryId = document.getElementById("productCategoryId").value;
+  const brandName = document.getElementById("productBrandName").value.trim();
 
   if (isEmpty(name) || !categoryId) {
-    showMessage("Product name and category ID are required");
+    showMessage("Product name and category ID are required.");
     return;
   }
 
-  let data = {
+  const data = {
     categoryId: Number(categoryId),
-    brandName: document.getElementById("productBrandName").value,
+    brandName: brandName,
     name: name,
     description: document.getElementById("productDescription").value,
     mainImageKey: document.getElementById("productImage").value,
@@ -362,8 +345,8 @@ document.getElementById("productForm").addEventListener("submit", async function
   };
 
   try {
-    await apiSend("/api/admin/products", "POST", data);
-    showMessage("Product created");
+    await apiSend("/admin/products", "POST", data);
+    showMessage("Product created successfully.");
     this.reset();
     loadProducts();
   } catch (error) {
@@ -373,9 +356,9 @@ document.getElementById("productForm").addEventListener("submit", async function
 
 async function loadProducts() {
   try {
-    let data = await apiGet("/api/admin/products");
+    const data = await apiGet("/admin/products");
 
-    productData = data.filter(function(product) {
+    productData = (data || []).filter(function (product) {
       return product.isActive === true;
     });
 
@@ -386,21 +369,21 @@ async function loadProducts() {
 }
 
 async function searchProduct() {
-  let id = document.getElementById("productSearchId").value;
+  const id = document.getElementById("productSearchId").value;
 
   if (!id) {
-    showMessage("Enter product ID to search");
+    showMessage("Enter product ID to search.");
     return;
   }
 
   try {
-    let product = await apiGet("/api/admin/products/" + id);
+    const product = await apiGet("/admin/products/" + id);
 
-    if (product.isActive === true) {
+    if (product && product.isActive === true) {
       showProducts([product]);
     } else {
       showProducts([]);
-      showMessage("Product is inactive or not visible");
+      showMessage("Product is inactive or not found.");
     }
   } catch (error) {
     showMessage(error.message);
@@ -408,22 +391,22 @@ async function searchProduct() {
 }
 
 function showProducts(data) {
-  let box = document.getElementById("productList");
+  const box = document.getElementById("productList");
   box.innerHTML = "";
 
-  if (data.length === 0) {
-    box.innerHTML = "<p>No active products found</p>";
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active products found.</p>";
     return;
   }
 
-  data.forEach(function(product) {
+  data.forEach(function (product) {
     box.innerHTML += `
       <div class="item">
-        <h4>${product.name}</h4>
+        <h4>${product.name || "-"}</h4>
         <p><b>ID:</b> ${product.productId}</p>
         <p><b>Category ID:</b> ${product.categoryId || "-"}</p>
         <p><b>Brand:</b> ${product.brandName || "-"}</p>
-        <p><b>Status:</b> ${product.status}</p>
+        <p><b>Status:</b> ${product.status || "-"}</p>
         <p><b>Created By:</b> ${product.createdBy || "-"}</p>
         <p><b>Modified By:</b> ${product.modifiedBy || "-"}</p>
 
@@ -449,7 +432,7 @@ function openProductPopup(product) {
 
   document.getElementById("popupFields").innerHTML = `
     <label>Product Name</label>
-    <input id="editProductName" value="${product.name}" />
+    <input id="editProductName" value="${product.name || ""}" />
 
     <label>Description</label>
     <textarea id="editProductDescription">${product.description || ""}</textarea>
@@ -480,8 +463,8 @@ async function deleteProduct(id) {
   if (!confirm("Delete this product?")) return;
 
   try {
-    await apiDelete("/api/admin/products/" + id);
-    showMessage("Product deleted");
+    await apiDelete("/admin/products/" + id);
+    showMessage("Product deleted successfully.");
     loadProducts();
   } catch (error) {
     showMessage(error.message);
@@ -490,21 +473,21 @@ async function deleteProduct(id) {
 
 /* ================= VARIANTS ================= */
 
-document.getElementById("variantForm").addEventListener("submit", async function(e) {
+document.getElementById("variantForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   if (!checkAuth()) return;
 
-  let productId = document.getElementById("variantProductId").value;
-  let sku = document.getElementById("variantSku").value;
-  let price = document.getElementById("variantPrice").value;
+  const productId = document.getElementById("variantProductId").value;
+  const sku = document.getElementById("variantSku").value.trim();
+  const price = document.getElementById("variantPrice").value;
 
   if (!productId || isEmpty(sku)) {
-    showMessage("Product ID and SKU are required");
+    showMessage("Product ID and SKU are required.");
     return;
   }
 
-  let data = {
+  const data = {
     sku: sku,
     color: document.getElementById("variantColor").value,
     size: document.getElementById("variantSize").value,
@@ -515,8 +498,9 @@ document.getElementById("variantForm").addEventListener("submit", async function
   };
 
   try {
-    await apiSend("/api/admin/products/" + productId + "/variants", "POST", data);
-    showMessage("Variant created");
+    data.productId = Number(productId);
+    await apiSend("/admin/variants", "POST", data);
+    showMessage("Variant created successfully.");
     this.reset();
   } catch (error) {
     showMessage(error.message);
@@ -524,17 +508,17 @@ document.getElementById("variantForm").addEventListener("submit", async function
 });
 
 async function searchVariantsByProduct() {
-  let productId = document.getElementById("variantSearchProductId").value;
+  const productId = document.getElementById("variantSearchProductId").value;
 
   if (!productId) {
-    showMessage("Enter product ID");
+    showMessage("Enter product ID.");
     return;
   }
 
   try {
-    let data = await apiGet("/api/admin/products/" + productId + "/variants");
+    const data = await apiGet("/admin/variants");
 
-    let activeData = data.filter(function(variant) {
+    const activeData = (data || []).filter(function (variant) {
       return variant.isActive === true;
     });
 
@@ -545,18 +529,18 @@ async function searchVariantsByProduct() {
 }
 
 function showVariants(data) {
-  let box = document.getElementById("variantList");
+  const box = document.getElementById("variantList");
   box.innerHTML = "";
 
-  if (data.length === 0) {
-    box.innerHTML = "<p>No active variants found</p>";
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active variants found.</p>";
     return;
   }
 
-  data.forEach(function(variant) {
+  data.forEach(function (variant) {
     box.innerHTML += `
       <div class="item">
-        <h4>${variant.sku}</h4>
+        <h4>${variant.sku || "-"}</h4>
         <p><b>ID:</b> ${variant.variantId}</p>
         <p><b>Color:</b> ${variant.color || "-"}</p>
         <p><b>Size:</b> ${variant.size || "-"}</p>
@@ -586,7 +570,7 @@ function openVariantPopup(variant) {
 
   document.getElementById("popupFields").innerHTML = `
     <label>SKU</label>
-    <input id="editVariantSku" value="${variant.sku}" />
+    <input id="editVariantSku" value="${variant.sku || ""}" />
 
     <label>Color</label>
     <input id="editVariantColor" value="${variant.color || ""}" />
@@ -613,8 +597,8 @@ async function deleteVariant(id) {
   if (!confirm("Delete this variant?")) return;
 
   try {
-    await apiDelete("/api/admin/variants/" + id);
-    showMessage("Variant deleted");
+    await apiDelete("/admin/variants/" + id);
+    showMessage("Variant deleted successfully.");
   } catch (error) {
     showMessage(error.message);
   }
@@ -626,30 +610,30 @@ function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-document.getElementById("popupForm").addEventListener("submit", async function(e) {
+document.getElementById("popupForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   if (!checkAuth()) return;
 
   try {
     if (editType === "category") {
-      let parentId = document.getElementById("editCategoryParentId").value;
+      const parentId = document.getElementById("editCategoryParentId").value;
 
-      let data = {
+      const data = {
         parentId: parentId ? Number(parentId) : null,
-        name: document.getElementById("editCategoryName").value,
-        slug: document.getElementById("editCategorySlug").value,
+        name: document.getElementById("editCategoryName").value.trim(),
+        slug: document.getElementById("editCategorySlug").value.trim(),
         isActive: document.getElementById("editCategoryIsActive").value === "true",
         modifiedBy: adminUserId()
       };
 
-      await apiSend("/api/admin/categories/" + editId, "PUT", data);
+      await apiSend("/admin/categories/" + editId, "PUT", data);
       loadCategories();
     }
 
     if (editType === "product") {
-      let data = {
-        name: document.getElementById("editProductName").value,
+      const data = {
+        name: document.getElementById("editProductName").value.trim(),
         description: document.getElementById("editProductDescription").value,
         mainImageKey: document.getElementById("editProductImage").value,
         status: document.getElementById("editProductStatus").value,
@@ -657,15 +641,15 @@ document.getElementById("popupForm").addEventListener("submit", async function(e
         modifiedBy: adminUserId()
       };
 
-      await apiSend("/api/admin/products/" + editId, "PUT", data);
+      await apiSend("/admin/products/" + editId, "PUT", data);
       loadProducts();
     }
 
     if (editType === "variant") {
-      let price = document.getElementById("editVariantPrice").value;
+      const price = document.getElementById("editVariantPrice").value;
 
-      let data = {
-        sku: document.getElementById("editVariantSku").value,
+      const data = {
+        sku: document.getElementById("editVariantSku").value.trim(),
         color: document.getElementById("editVariantColor").value,
         size: document.getElementById("editVariantSize").value,
         price: price ? Number(price) : null,
@@ -673,15 +657,12 @@ document.getElementById("popupForm").addEventListener("submit", async function(e
         modifiedBy: adminUserId()
       };
 
-      await apiSend("/api/admin/variants/" + editId, "PUT", data);
+      await apiSend("/admin/variants/" + editId, "PUT", data);
     }
 
     closePopup();
-    showMessage("Updated successfully");
-
+    showMessage("Updated successfully.");
   } catch (error) {
     showMessage(error.message);
   }
 });
-
-loadAuth();
