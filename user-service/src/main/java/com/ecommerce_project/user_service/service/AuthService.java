@@ -55,7 +55,7 @@ public class AuthService {
 
         logger.info("User registered successfully: {}", request.getEmail());
 
-        return new RegisterResponse("User registered successfully", user.getEmail(), user.getRole());
+        return new RegisterResponse("User registered successfully");
     }
 
     public LoginResponse login(LoginRequest request) {

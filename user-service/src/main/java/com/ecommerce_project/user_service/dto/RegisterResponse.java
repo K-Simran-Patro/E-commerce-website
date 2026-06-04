@@ -11,9 +11,8 @@ public class RegisterResponse {
     private String email;
     private String role;
 
-    public RegisterResponse(String message, String email, String role) {
+    public RegisterResponse(String message){
         this.message = message;
-        this.email = email;
-        this.role = role;
+        
     }
 }

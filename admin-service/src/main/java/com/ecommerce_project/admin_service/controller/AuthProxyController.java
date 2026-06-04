@@ -34,13 +34,13 @@ public class AuthProxyController {
     @Operation(summary = "Admin login", description = "Forwards login request to User Service and returns JWT token")
     public ResponseEntity<Object> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
 
-        logger.info("Login request received for username: {}", loginRequestDTO.getUsername());
+        logger.info("Login request received for email: {}", loginRequestDTO.getEmail());
 
         String url = userServiceUrl + "/auth/login";
 
         ResponseEntity<Object> response = restTemplate.postForEntity(url, loginRequestDTO, Object.class);
 
-        logger.info("Login response received from User Service for username: {}", loginRequestDTO.getUsername());
+        logger.info("Login response received from User Service for email: {}", loginRequestDTO.getEmail());
 
         return response;
     }
@@ -50,13 +50,13 @@ public class AuthProxyController {
     @Operation(summary = "Register new admin", description = "Forwards register request to User Service to create a new admin")
     public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
 
-        logger.info("Register request received for username: {}", registerRequestDTO.getUsername());
+        logger.info("Register request received for email: {}", registerRequestDTO.getEmail());
 
         String url = userServiceUrl + "/auth/register";
 
         ResponseEntity<Object> response = restTemplate.postForEntity(url, registerRequestDTO, Object.class);
 
-        logger.info("Register response received from User Service for username: {}", registerRequestDTO.getUsername());
+        logger.info("Register response received from User Service for email: {}", registerRequestDTO.getEmail());
 
         return response;
     }
