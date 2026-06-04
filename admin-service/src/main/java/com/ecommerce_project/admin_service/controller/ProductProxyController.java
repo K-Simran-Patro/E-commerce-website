@@ -34,12 +34,10 @@ public class ProductProxyController {
     @Value("${product.service.url}")
     private String productServiceUrl;
 
-    // ─── Get logged in admin username from token ──────────
     private String getLoggedInUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    // ─── Build headers with X-User-Name ──────────────────
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-User-Name", getLoggedInUsername());
@@ -47,127 +45,124 @@ public class ProductProxyController {
         return headers;
     }
 
-
     // ════════════════════════════════════════════════════
     //  CATEGORY ENDPOINTS
     // ════════════════════════════════════════════════════
 
     @GetMapping("/categories")
-    @Operation(summary = "Get all categories", description = "Returns list of all categories from Product Service")
-    public ResponseEntity<Object> getAllCategories() {
+    @Operation(summary = "Get all categories")
+    public ResponseEntity<String> getAllCategories() {
         logger.info("Get all categories requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/categories";
         HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
-        return restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
     }
 
     @PostMapping("/categories")
-    @Operation(summary = "Create category", description = "Forwards create category request to Product Service")
-    public ResponseEntity<Object> createCategory(@RequestBody Object requestBody) {
+    @Operation(summary = "Create category")
+    public ResponseEntity<String> createCategory(@RequestBody Object requestBody) {
         logger.info("Create category requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/categories";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.POST, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
     }
 
     @PutMapping("/categories")
-    @Operation(summary = "Update category", description = "Forwards update category request to Product Service")
-    public ResponseEntity<Object> updateCategory(@RequestBody Object requestBody) {
+    @Operation(summary = "Update category")
+    public ResponseEntity<String> updateCategory(@RequestBody Object requestBody) {
         logger.info("Update category requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/categories";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.PUT, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
     }
 
     @DeleteMapping("/categories")
-    @Operation(summary = "Delete category", description = "Forwards delete category request to Product Service")
-    public ResponseEntity<Object> deleteCategory(@RequestBody Object requestBody) {
+    @Operation(summary = "Delete category")
+    public ResponseEntity<String> deleteCategory(@RequestBody Object requestBody) {
         logger.info("Delete category requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/categories";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.DELETE, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
     }
-
 
     // ════════════════════════════════════════════════════
     //  PRODUCT ENDPOINTS
     // ════════════════════════════════════════════════════
 
     @GetMapping("/products")
-    @Operation(summary = "Get all products", description = "Returns list of all products from Product Service")
-    public ResponseEntity<Object> getAllProducts() {
+    @Operation(summary = "Get all products")
+    public ResponseEntity<String> getAllProducts() {
         logger.info("Get all products requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/products";
         HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
-        return restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
     }
 
     @PostMapping("/products")
-    @Operation(summary = "Create product", description = "Forwards create product request to Product Service")
-    public ResponseEntity<Object> createProduct(@RequestBody Object requestBody) {
+    @Operation(summary = "Create product")
+    public ResponseEntity<String> createProduct(@RequestBody Object requestBody) {
         logger.info("Create product requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/products";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.POST, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
     }
 
     @PutMapping("/products")
-    @Operation(summary = "Update product", description = "Forwards update product request to Product Service")
-    public ResponseEntity<Object> updateProduct(@RequestBody Object requestBody) {
+    @Operation(summary = "Update product")
+    public ResponseEntity<String> updateProduct(@RequestBody Object requestBody) {
         logger.info("Update product requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/products";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.PUT, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
     }
 
     @DeleteMapping("/products")
-    @Operation(summary = "Delete product", description = "Forwards delete product request to Product Service")
-    public ResponseEntity<Object> deleteProduct(@RequestBody Object requestBody) {
+    @Operation(summary = "Delete product")
+    public ResponseEntity<String> deleteProduct(@RequestBody Object requestBody) {
         logger.info("Delete product requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/products";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.DELETE, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
     }
-
 
     // ════════════════════════════════════════════════════
     //  PRODUCT VARIANT ENDPOINTS
     // ════════════════════════════════════════════════════
 
     @GetMapping("/variants")
-    @Operation(summary = "Get all variants", description = "Returns list of all product variants from Product Service")
-    public ResponseEntity<Object> getAllVariants() {
+    @Operation(summary = "Get all variants")
+    public ResponseEntity<String> getAllVariants() {
         logger.info("Get all variants requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/variants";
         HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
-        return restTemplate.exchange(url, HttpMethod.GET, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
     }
 
     @PostMapping("/variants")
-    @Operation(summary = "Create variant", description = "Forwards create variant request to Product Service")
-    public ResponseEntity<Object> createVariant(@RequestBody Object requestBody) {
+    @Operation(summary = "Create variant")
+    public ResponseEntity<String> createVariant(@RequestBody Object requestBody) {
         logger.info("Create variant requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/variants";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.POST, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
     }
 
     @PutMapping("/variants")
-    @Operation(summary = "Update variant", description = "Forwards update variant request to Product Service")
-    public ResponseEntity<Object> updateVariant(@RequestBody Object requestBody) {
+    @Operation(summary = "Update variant")
+    public ResponseEntity<String> updateVariant(@RequestBody Object requestBody) {
         logger.info("Update variant requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/variants";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.PUT, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
     }
 
     @DeleteMapping("/variants")
-    @Operation(summary = "Delete variant", description = "Forwards delete variant request to Product Service")
-    public ResponseEntity<Object> deleteVariant(@RequestBody Object requestBody) {
+    @Operation(summary = "Delete variant")
+    public ResponseEntity<String> deleteVariant(@RequestBody Object requestBody) {
         logger.info("Delete variant requested by: {}", getLoggedInUsername());
         String url = productServiceUrl + "/api/variants";
         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
-        return restTemplate.exchange(url, HttpMethod.DELETE, entity, Object.class);
+        return restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
     }
 
 }

@@ -29,18 +29,22 @@ public class AuthProxyController {
     private String userServiceUrl;
 
     // ─── Login ────────────────────────────────────────────
-    @PostMapping("/login")
+   @PostMapping("/login")
     @Operation(summary = "Admin login", description = "Forwards login request to User Service and returns JWT token")
     public ResponseEntity<Object> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
 
-        logger.info("Login request received for email: {}", loginRequestDTO.getEmail());
+    logger.info("Login request received for email: {}", loginRequestDTO.getEmail());
 
-        String url = userServiceUrl + "/auth/login";
+    String url = userServiceUrl + "/auth/login";
 
-        ResponseEntity<Object> response = restTemplate.postForEntity(url, loginRequestDTO, Object.class);
+    // ─── Use String.class to avoid header conflicts ────
+    ResponseEntity<String> response = restTemplate.postForEntity(url, loginRequestDTO, String.class);
 
-        logger.info("Login response received from User Service for email: {}", loginRequestDTO.getEmail());
+    logger.info("Login response received from User Service for email: {}", loginRequestDTO.getEmail());
 
-        return response;
+    // ─── Rebuild clean response with only status + body ─
+    return ResponseEntity
+            .status(response.getStatusCode())
+            .body(response.getBody());
     }
 }
