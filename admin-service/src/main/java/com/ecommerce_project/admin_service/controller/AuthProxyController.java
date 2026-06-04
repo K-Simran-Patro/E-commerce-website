@@ -1,7 +1,6 @@
 package com.ecommerce_project.admin_service.controller;
 
 import com.ecommerce_project.admin_service.dto.LoginRequestDTO;
-import com.ecommerce_project.admin_service.dto.RegisterRequestDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,22 +40,6 @@ public class AuthProxyController {
         ResponseEntity<Object> response = restTemplate.postForEntity(url, loginRequestDTO, Object.class);
 
         logger.info("Login response received from User Service for email: {}", loginRequestDTO.getEmail());
-
-        return response;
-    }
-
-    // ─── Register ─────────────────────────────────────────
-    @PostMapping("/register")
-    @Operation(summary = "Register new admin", description = "Forwards register request to User Service to create a new admin")
-    public ResponseEntity<Object> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO) {
-
-        logger.info("Register request received for email: {}", registerRequestDTO.getEmail());
-
-        String url = userServiceUrl + "/auth/register";
-
-        ResponseEntity<Object> response = restTemplate.postForEntity(url, registerRequestDTO, Object.class);
-
-        logger.info("Register response received from User Service for email: {}", registerRequestDTO.getEmail());
 
         return response;
     }
