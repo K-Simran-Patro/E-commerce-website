@@ -1,4 +1,4 @@
-const API_URL = "https://e-commerce-website-620c.onrender.com";
+const API_URL = "https://e-commerce-website-user-service.onrender.com";
 
 /* ================= PASSWORD EYE TOGGLE ================= */
 
