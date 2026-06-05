@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Service</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+
+  <aside class="sidebar">
+    <h2>Admin Panel</h2>
+    <button onclick="showPage('categoryPage')">Categories</button>
+    <button onclick="showPage('productPage')">Products</button>
+    <button onclick="showPage('variantPage')">Product Variants</button>
+    <hr />
+    <button onclick="showPage('itemPage')">Item Services</button>
+    <button onclick="showPage('inboundPage')">Inbound Services</button>
+    <button onclick="showPage('inventoryPage')">Inventory</button>
+
+    <div class="api-box">
+      <label>Backend URL</label>
+      <input id="apiUrl" value="https://e-commerce-website-admin-service.onrender.com" />
+      <button onclick="saveAuth()">Save URL</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <h1>Admin Service Dashboard</h1>
+    <div id="message"></div>
+
+    <!-- HOME -->
+    <section id="homePage" class="page">
+      <div class="card">
+        <h2>Welcome Admin</h2>
+        <p>Select a section from the sidebar.</p>
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="categoryPage" class="page hidden">
+      <div class="card">
+        <h2>Categories</h2>
+        <h3>Create Category</h3>
+        <form id="categoryForm">
+          <label>Parent Category ID</label>
+          <input id="categoryParentId" type="number" placeholder="Optional" />
+          <label>Category Name</label>
+          <input id="categoryName" required />
+          <label>Slug</label>
+          <input id="categorySlug" required />
+          <label>Is Active</label>
+          <select id="categoryIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+          <button type="submit">Create Category</button>
+        </form>
+        <hr />
+        <h3>View Categories</h3>
+        <div class="search-row">
+          <input id="categorySearchId" type="number" placeholder="Search by ID" />
+          <button onclick="searchCategory()">Search</button>
+          <button onclick="loadCategories()">View All Active</button>
+        </div>
+        <div id="categoryList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section id="productPage" class="page hidden">
+      <div class="card">
+        <h2>Products</h2>
+        <h3>Create Product</h3>
+        <form id="productForm">
+          <label>Category ID</label>
+          <input id="productCategoryId" type="number" required />
+          <label>Brand Name</label>
+          <input id="productBrandName" />
+          <label>Product Name</label>
+          <input id="productName" required />
+          <label>Description</label>
+          <textarea id="productDescription"></textarea>
+          <label>Main Image Key</label>
+          <input id="productImage" placeholder="products/shoe.jpg" />
+          <label>Status</label>
+          <select id="productStatus">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+            <option value="draft">draft</option>
+          </select>
+          <label>Is Active</label>
+          <select id="productIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+          <button type="submit">Create Product</button>
+        </form>
+        <hr />
+        <h3>View Products</h3>
+        <div class="search-row">
+          <input id="productSearchId" type="number" placeholder="Search by ID" />
+          <button onclick="searchProduct()">Search</button>
+          <button onclick="loadProducts()">View All Active</button>
+        </div>
+        <div id="productList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- VARIANTS -->
+    <section id="variantPage" class="page hidden">
+      <div class="card">
+        <h2>Product Variants</h2>
+        <h3>Create Variant</h3>
+        <form id="variantForm">
+          <label>Product ID</label>
+          <input id="variantProductId" type="number" required />
+          <label>SKU</label>
+          <input id="variantSku" required />
+          <label>Color</label>
+          <input id="variantColor" />
+          <label>Size</label>
+          <input id="variantSize" />
+          <label>Price</label>
+          <input id="variantPrice" type="number" step="0.01" />
+          <label>Is Active</label>
+          <select id="variantIsActive">
+            <option value="true">true</option>
+            <option value="false">false</option>
+          </select>
+          <button type="submit">Create Variant</button>
+        </form>
+        <hr />
+        <h3>View Variants by Product</h3>
+        <div class="search-row">
+          <input id="variantSearchProductId" type="number" placeholder="Enter Product ID" />
+          <button onclick="searchVariantsByProduct()">Search</button>
+        </div>
+        <div id="variantList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- FUTURE PAGES -->
+    <section id="itemPage" class="page hidden">
+      <div class="card"><h2>Item Services</h2><p>Coming soon.</p></div>
+    </section>
+    <section id="inboundPage" class="page hidden">
+      <div class="card"><h2>Inbound Services</h2><p>Coming soon.</p></div>
+    </section>
+    <section id="inventoryPage" class="page hidden">
+      <div class="card"><h2>Inventory</h2><p>Coming soon.</p></div>
+    </section>
+  </main>
+
+  <!-- UPDATE POPUP -->
+  <div id="popup" class="popup hidden">
+    <div class="popup-box">
+      <h2 id="popupTitle">Update</h2>
+      <form id="popupForm">
+        <div id="popupFields"></div>
+        <div class="popup-buttons">
+          <button type="submit">Save Update</button>
+          <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/utils.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

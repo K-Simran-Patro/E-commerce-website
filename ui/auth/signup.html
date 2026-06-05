@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Signup</title>
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p>Signup to start shopping</p>
+
+      <form id="signupForm">
+        <label>Full Name</label>
+        <input id="signupFullName" type="text" placeholder="John Doe" required />
+
+        <label>Email</label>
+        <input id="signupEmail" type="email" placeholder="you@example.com" required />
+
+        <label>Phone</label>
+        <input id="signupPhone" type="text" placeholder="+91 98765 43210" />
+
+        <label>Password</label>
+        <div class="password-box">
+          <input id="signupPassword" type="password" placeholder="Create a password" required />
+          <span class="eye-icon" onclick="togglePassword('signupPassword', this)">🙈</span>
+        </div>
+
+        <label>Confirm Password</label>
+        <div class="password-box">
+          <input id="signupConfirmPassword" type="password" placeholder="Repeat your password" required />
+          <span class="eye-icon" onclick="togglePassword('signupConfirmPassword', this)">🙈</span>
+        </div>
+
+        <button type="submit" id="signupBtn">Signup</button>
+      </form>
+
+      <p id="signupMessage" class="message"></p>
+
+      <p class="link-text">
+        Already have an account? <a href="login.html">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/utils.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

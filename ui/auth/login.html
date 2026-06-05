@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <p>Login to continue</p>
+
+      <form id="loginForm">
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="you@example.com" required />
+
+        <label>Password</label>
+        <div class="password-box">
+          <input id="loginPassword" type="password" placeholder="Enter your password" required />
+          <span class="eye-icon" onclick="togglePassword('loginPassword', this)">🙈</span>
+        </div>
+
+        <button type="submit" id="loginBtn">Login</button>
+      </form>
+
+      <p id="loginMessage" class="message"></p>
+
+      <p class="link-text">
+        New user? <a href="signup.html">Create account</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="../shared/config.js"></script>
+  <script src="../shared/utils.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
