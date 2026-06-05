@@ -1,4 +1,4 @@
-// ── Password toggle ──────────────────────────────────────────
+ // ── Password toggle ──────────────────────────────────────────
 function togglePassword(inputId, icon) {
   var input = document.getElementById(inputId);
 
@@ -49,6 +49,21 @@ function isValidEmail(email) {
 
 function isValidPassword(password) {
   return password.length >= 6;
+}
+
+// ── JWT Decoder ──────────────────────────────────────────────
+// Decodes the JWT token payload to get role, email etc.
+// JWT structure: header.payload.signature
+// Payload is base64 encoded — we decode it to read the claims
+function decodeToken(token) {
+  try {
+    var payload = token.split(".")[1];
+    var decoded = JSON.parse(atob(payload));
+    return decoded;
+  } catch (error) {
+    console.error("Token decode error:", error);
+    return null;
+  }
 }
 
 // ── SIGNUP ───────────────────────────────────────────────────
@@ -131,9 +146,10 @@ if (signupForm) {
 
 // ── LOGIN ────────────────────────────────────────────────────
 // POST USER_SERVICE/auth/login
-// Response: { token, userId, email, role }
-// ADMIN → /admin/admin.html
-// USER  → /customer/home.html
+// Response: { token }
+// We decode the JWT to get: sub (email), role
+// role = "admin" → /admin/admin.html
+// role = "user"  → /customer/home.html
 var loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -183,16 +199,27 @@ if (loginForm) {
         return;
       }
 
+      // Decode JWT to extract role and email from token claims
+      // JWT payload contains: { sub: "email", role: "admin", iat: ..., exp: ... }
+      var decoded = decodeToken(result.token);
+
+      if (!decoded) {
+        showAuthMessage("loginMessage", "Login failed. Invalid token.", "red");
+        return;
+      }
+
       // Save to localStorage — used by getHeaders() and guards in utils.js
-      localStorage.setItem("authToken",   result.token  || "");
-      localStorage.setItem("adminUserId", result.userId || "");
-      localStorage.setItem("userEmail",   result.email  || email);
-      localStorage.setItem("userRole",    result.role   || "");
+      localStorage.setItem("authToken",  result.token   || "");
+      localStorage.setItem("userEmail",  decoded.sub    || email);
+      localStorage.setItem("userRole",   decoded.role   || "");
+      localStorage.setItem("adminUserId", decoded.userId || "");
 
       showAuthMessage("loginMessage", "Login successful! Redirecting...", "green");
 
+      // Redirect based on role from JWT
+      // role is "admin" (lowercase) as stored in DB
       setTimeout(function () {
-        if (result.role === "ADMIN") {
+        if (decoded.role === "admin") {
           window.location.href = "/admin/admin.html";
         } else {
           window.location.href = "/customer/home.html";
