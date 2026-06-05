@@ -28,7 +28,6 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable());
 
-        // Enable CORS. Actual CORS rules will come from CorsFilterConfig.java
         http.cors(cors -> {});
 
         http.sessionManagement(session ->
@@ -37,20 +36,20 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
 
-                // Allow browser preflight requests
+                // allow browser preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public APIs
-                .requestMatchers("/auth/register", "/auth/login").permitAll()
+                // allow all auth APIs publicly
+                .requestMatchers("/auth/**").permitAll()
 
-                // Swagger APIs
+                // allow swagger
                 .requestMatchers(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
                         "/swagger-ui.html"
                 ).permitAll()
 
-                // Everything else needs JWT
+                // all other APIs need login token
                 .anyRequest().authenticated()
         );
 
