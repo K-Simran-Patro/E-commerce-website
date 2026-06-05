@@ -3,7 +3,7 @@ function guardAdmin() {
   var token = localStorage.getItem("authToken");
   var role  = localStorage.getItem("userRole");
 
-  if (!token || role !== "ADMIN") {
+  if (!token || role !== "admin") {
     window.location.href = "/auth/login.html";
   }
 }
