@@ -1,17 +1,17 @@
-// ── Page protection — redirect if not ADMIN ──────────────────
+// ── Page protection — redirect if not admin ──────────────────
 guardAdmin();
 
 var editType = "";
 var editId   = null;
 
-// ── Admin service URL (reads from sidebar input) ─────────────
+// ── Admin service URL ────────────────────────────────────────
 function apiUrl() {
   var input = document.getElementById("apiUrl");
   if (input && input.value.trim()) return input.value.trim();
   return ADMIN_SERVICE;
 }
 
-// ── Save URL to localStorage (was missing before) ────────────
+// ── Save URL to localStorage ─────────────────────────────────
 function saveAuth() {
   var input = document.getElementById("apiUrl");
   if (input && input.value.trim()) {
@@ -46,8 +46,9 @@ function isEmpty(value) {
 }
 
 // ── API helpers ──────────────────────────────────────────────
-// getHeaders() comes from utils.js
-// Sends: Authorization: Bearer token + X-User-Name for audit log
+// getHeaders() from utils.js adds:
+//   Authorization: Bearer token
+//   X-User-Name: email  ← admin service reads this for audit log
 
 async function apiGet(path) {
   var response = await fetch(apiUrl() + path, {
@@ -74,17 +75,6 @@ async function apiSend(path, method, data) {
   try { return JSON.parse(text); } catch { return text; }
 }
 
-async function apiDelete(path) {
-  var response = await fetch(apiUrl() + path, {
-    method  : "DELETE",
-    headers : getHeaders()
-  });
-  if (handleUnauthorized(response.status)) return null;
-  var text = await response.text();
-  if (!response.ok) throw new Error(text || "Delete failed");
-  return text;
-}
-
 function checkAuth() {
   if (!localStorage.getItem("authToken")) {
     showMessage("Token missing. Please login again.");
@@ -94,7 +84,17 @@ function checkAuth() {
   return true;
 }
 
-// ── CATEGORIES ───────────────────────────────────────────────
+
+/* ===================================================
+   CATEGORIES
+   Fields accepted by backend:
+   categoryId, name, slug, parentId
+
+   NOTE: No path variable in admin service.
+   Update and Delete send ID in request body.
+   Search by ID filters from loaded data.
+   =================================================== */
+
 var categoryData = [];
 
 document.getElementById("categoryForm").addEventListener("submit", async function (e) {
@@ -105,18 +105,14 @@ document.getElementById("categoryForm").addEventListener("submit", async functio
   var slug     = document.getElementById("categorySlug").value.trim();
   var parentId = document.getElementById("categoryParentId").value;
 
-  if (isEmpty(name) || isEmpty(slug)) {
-    showMessage("Category name and slug are required.");
-    return;
-  }
+  if (isEmpty(name)) { showMessage("Category name is required."); return; }
+  if (isEmpty(slug)) { showMessage("Category slug is required."); return; }
 
+  // Only send fields that backend DTO accepts
   var data = {
-    parentId   : parentId ? Number(parentId) : null,
-    name       : name,
-    slug       : slug,
-    isActive   : document.getElementById("categoryIsActive").value === "true",
-    createdBy  : adminUserId(),
-    modifiedBy : adminUserId()
+    name     : name,
+    slug     : slug,
+    parentId : parentId ? Number(parentId) : null
   };
 
   try {
@@ -130,25 +126,34 @@ document.getElementById("categoryForm").addEventListener("submit", async functio
 async function loadCategories() {
   try {
     var data = await apiGet("/admin/categories");
-    categoryData = (data || []).filter(function (c) { return c.isActive === true; });
+    categoryData = data || [];
     showCategories(categoryData);
   } catch (error) { showMessage(error.message); }
 }
 
-async function searchCategory() {
+// Search filters from already loaded data — no separate API call
+// (admin service has no GET /admin/categories/{id})
+function searchCategory() {
   var id = document.getElementById("categorySearchId").value;
   if (!id) { showMessage("Enter a category ID."); return; }
-  try {
-    var category = await apiGet("/admin/categories/" + id);
-    if (category && category.isActive) showCategories([category]);
-    else { showCategories([]); showMessage("Category not found or inactive."); }
-  } catch (error) { showMessage(error.message); }
+
+  var found = categoryData.filter(function (c) {
+    return String(c.categoryId) === String(id);
+  });
+
+  if (found.length > 0) {
+    showCategories(found);
+  } else {
+    showCategories([]);
+    showMessage("Category not found. Click View All to reload.");
+  }
 }
 
 function showCategories(data) {
   var box = document.getElementById("categoryList");
   box.innerHTML = "";
   if (!data || data.length === 0) { box.innerHTML = "<p>No categories found.</p>"; return; }
+
   data.forEach(function (c) {
     box.innerHTML += `
       <div class="item">
@@ -166,7 +171,8 @@ function showCategories(data) {
 }
 
 function openCategoryPopup(c) {
-  editType = "category"; editId = c.categoryId;
+  editType = "category";
+  editId   = c.categoryId;
   document.getElementById("popupTitle").innerText = "Update Category";
   document.getElementById("popupFields").innerHTML = `
     <label>Parent Category ID</label>
@@ -174,28 +180,32 @@ function openCategoryPopup(c) {
     <label>Category Name</label>
     <input id="editCategoryName" value="${c.name || ""}" />
     <label>Slug</label>
-    <input id="editCategorySlug" value="${c.slug || ""}" />
-    <label>Is Active</label>
-    <select id="editCategoryIsActive">
-      <option value="true" ${c.isActive ? "selected" : ""}>true</option>
-      <option value="false" ${!c.isActive ? "selected" : ""}>false</option>
-    </select>`;
+    <input id="editCategorySlug" value="${c.slug || ""}" />`;
   document.getElementById("popup").classList.remove("hidden");
 }
 
+// FIX: Delete sends ID in request body, not path variable
 async function deleteCategory(id) {
   if (!checkAuth()) return;
-  var hasChild = categoryData.some(function (c) { return Number(c.parentId) === Number(id); });
-  if (hasChild) { showMessage("Cannot delete: has sub-categories."); return; }
   if (!confirm("Delete this category?")) return;
+
   try {
-    await apiDelete("/admin/categories/" + id);
+    await apiSend("/admin/categories", "DELETE", { categoryId: id });
     showMessage("Category deleted.");
     loadCategories();
   } catch (error) { showMessage(error.message); }
 }
 
-// ── PRODUCTS ─────────────────────────────────────────────────
+
+/* ===================================================
+   PRODUCTS
+   Fields accepted by backend:
+   productId, categoryId, brandName, name,
+   description, mainImageKey, isActive
+
+   NOTE: status field removed — not in product DTO.
+   =================================================== */
+
 var productData = [];
 
 document.getElementById("productForm").addEventListener("submit", async function (e) {
@@ -205,21 +215,18 @@ document.getElementById("productForm").addEventListener("submit", async function
   var name       = document.getElementById("productName").value.trim();
   var categoryId = document.getElementById("productCategoryId").value;
 
-  if (isEmpty(name) || !categoryId) {
-    showMessage("Product name and category ID are required.");
-    return;
-  }
+  if (isEmpty(name))       { showMessage("Product name is required."); return; }
+  if (isEmpty(categoryId)) { showMessage("Category ID is required."); return; }
 
+  // Only send fields that backend DTO accepts
+  // status is NOT included — product DTO doesn't have it
   var data = {
     categoryId   : Number(categoryId),
     brandName    : document.getElementById("productBrandName").value.trim(),
     name         : name,
     description  : document.getElementById("productDescription").value,
     mainImageKey : document.getElementById("productImage").value,
-    status       : document.getElementById("productStatus").value,
-    isActive     : document.getElementById("productIsActive").value === "true",
-    createdBy    : adminUserId(),
-    modifiedBy   : adminUserId()
+    isActive     : document.getElementById("productIsActive").value === "true"
   };
 
   try {
@@ -233,25 +240,33 @@ document.getElementById("productForm").addEventListener("submit", async function
 async function loadProducts() {
   try {
     var data = await apiGet("/admin/products");
-    productData = (data || []).filter(function (p) { return p.isActive === true; });
+    productData = data || [];
     showProducts(productData);
   } catch (error) { showMessage(error.message); }
 }
 
-async function searchProduct() {
+// Search filters from already loaded data
+function searchProduct() {
   var id = document.getElementById("productSearchId").value;
   if (!id) { showMessage("Enter a product ID."); return; }
-  try {
-    var product = await apiGet("/admin/products/" + id);
-    if (product && product.isActive) showProducts([product]);
-    else { showProducts([]); showMessage("Product not found or inactive."); }
-  } catch (error) { showMessage(error.message); }
+
+  var found = productData.filter(function (p) {
+    return String(p.productId) === String(id);
+  });
+
+  if (found.length > 0) {
+    showProducts(found);
+  } else {
+    showProducts([]);
+    showMessage("Product not found. Click View All to reload.");
+  }
 }
 
 function showProducts(data) {
   var box = document.getElementById("productList");
   box.innerHTML = "";
   if (!data || data.length === 0) { box.innerHTML = "<p>No products found.</p>"; return; }
+
   data.forEach(function (p) {
     box.innerHTML += `
       <div class="item">
@@ -259,7 +274,6 @@ function showProducts(data) {
         <p><b>ID:</b> ${p.productId}</p>
         <p><b>Category ID:</b> ${p.categoryId}</p>
         <p><b>Brand:</b> ${p.brandName || "-"}</p>
-        <p><b>Status:</b> ${p.status}</p>
         <p><b>Created By:</b> ${p.createdBy || "-"}</p>
         <div class="item-actions">
           <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>Update</button>
@@ -270,7 +284,8 @@ function showProducts(data) {
 }
 
 function openProductPopup(p) {
-  editType = "product"; editId = p.productId;
+  editType = "product";
+  editId   = p.productId;
   document.getElementById("popupTitle").innerText = "Update Product";
   document.getElementById("popupFields").innerHTML = `
     <label>Product Name</label>
@@ -279,12 +294,6 @@ function openProductPopup(p) {
     <textarea id="editProductDescription">${p.description || ""}</textarea>
     <label>Main Image Key</label>
     <input id="editProductImage" value="${p.mainImageKey || ""}" />
-    <label>Status</label>
-    <select id="editProductStatus">
-      <option value="active"   ${p.status === "active"   ? "selected" : ""}>active</option>
-      <option value="inactive" ${p.status === "inactive" ? "selected" : ""}>inactive</option>
-      <option value="draft"    ${p.status === "draft"    ? "selected" : ""}>draft</option>
-    </select>
     <label>Is Active</label>
     <select id="editProductIsActive">
       <option value="true"  ${p.isActive ? "selected" : ""}>true</option>
@@ -293,40 +302,51 @@ function openProductPopup(p) {
   document.getElementById("popup").classList.remove("hidden");
 }
 
+// FIX: Delete sends ID in request body
 async function deleteProduct(id) {
   if (!checkAuth()) return;
   if (!confirm("Delete this product?")) return;
+
   try {
-    await apiDelete("/admin/products/" + id);
+    await apiSend("/admin/products", "DELETE", { productId: id });
     showMessage("Product deleted.");
     loadProducts();
   } catch (error) { showMessage(error.message); }
 }
 
-// ── VARIANTS ─────────────────────────────────────────────────
+
+/* ===================================================
+   VARIANTS
+   Fields accepted by backend:
+   variantId, productId, sku, color, size, price, isActive
+
+   NOTE: price is required and must be > 0
+   Search: GET /admin/variants then filter by productId
+   =================================================== */
+
 document.getElementById("variantForm").addEventListener("submit", async function (e) {
   e.preventDefault();
   if (!checkAuth()) return;
 
   var productId = document.getElementById("variantProductId").value;
   var sku       = document.getElementById("variantSku").value.trim();
+  var price     = document.getElementById("variantPrice").value;
 
-  if (!productId || isEmpty(sku)) {
-    showMessage("Product ID and SKU are required.");
+  if (isEmpty(productId)) { showMessage("Product ID is required."); return; }
+  if (isEmpty(sku))       { showMessage("SKU is required."); return; }
+  if (isEmpty(price) || Number(price) <= 0) {
+    showMessage("Price is required and must be greater than 0.");
     return;
   }
 
-  var price = document.getElementById("variantPrice").value;
-
+  // Only send fields that backend DTO accepts
   var data = {
-    productId  : Number(productId),
-    sku        : sku,
-    color      : document.getElementById("variantColor").value,
-    size       : document.getElementById("variantSize").value,
-    price      : price ? Number(price) : null,
-    isActive   : document.getElementById("variantIsActive").value === "true",
-    createdBy  : adminUserId(),
-    modifiedBy : adminUserId()
+    productId : Number(productId),
+    sku       : sku,
+    color     : document.getElementById("variantColor").value,
+    size      : document.getElementById("variantSize").value,
+    price     : Number(price),
+    isActive  : document.getElementById("variantIsActive").value === "true"
   };
 
   try {
@@ -336,26 +356,34 @@ document.getElementById("variantForm").addEventListener("submit", async function
   } catch (error) { showMessage(error.message); }
 });
 
-// FIX: now correctly calls /admin/variants/product/{id}
+// FIX: Call GET /admin/variants then filter by productId on frontend
+// (admin service has no GET /admin/variants/product/{id})
 async function searchVariantsByProduct() {
   var productId = document.getElementById("variantSearchProductId").value;
   if (!productId) { showMessage("Enter a product ID."); return; }
+
   try {
-    var data = await apiGet("/admin/variants/product/" + productId);
-    var active = (data || []).filter(function (v) { return v.isActive === true; });
-    showVariants(active);
+    var data = await apiGet("/admin/variants");
+
+    var filtered = (data || []).filter(function (v) {
+      return String(v.productId) === String(productId);
+    });
+
+    showVariants(filtered);
   } catch (error) { showMessage(error.message); }
 }
 
 function showVariants(data) {
   var box = document.getElementById("variantList");
   box.innerHTML = "";
-  if (!data || data.length === 0) { box.innerHTML = "<p>No variants found.</p>"; return; }
+  if (!data || data.length === 0) { box.innerHTML = "<p>No variants found for this product.</p>"; return; }
+
   data.forEach(function (v) {
     box.innerHTML += `
       <div class="item">
         <h4>${v.sku}</h4>
         <p><b>ID:</b> ${v.variantId}</p>
+        <p><b>Product ID:</b> ${v.productId}</p>
         <p><b>Color:</b> ${v.color || "-"}</p>
         <p><b>Size:</b> ${v.size || "-"}</p>
         <p><b>Price:</b> ${v.price || "-"}</p>
@@ -369,7 +397,8 @@ function showVariants(data) {
 }
 
 function openVariantPopup(v) {
-  editType = "variant"; editId = v.variantId;
+  editType = "variant";
+  editId   = v.variantId;
   document.getElementById("popupTitle").innerText = "Update Variant";
   document.getElementById("popupFields").innerHTML = `
     <label>SKU</label>
@@ -388,16 +417,24 @@ function openVariantPopup(v) {
   document.getElementById("popup").classList.remove("hidden");
 }
 
+// FIX: Delete sends ID in request body
 async function deleteVariant(id) {
   if (!checkAuth()) return;
   if (!confirm("Delete this variant?")) return;
+
   try {
-    await apiDelete("/admin/variants/" + id);
+    await apiSend("/admin/variants", "DELETE", { variantId: id });
     showMessage("Variant deleted.");
   } catch (error) { showMessage(error.message); }
 }
 
-// ── POPUP ────────────────────────────────────────────────────
+
+/* ===================================================
+   POPUP — Update form
+   FIX: All updates go to /admin/xxx (no path variable)
+   ID is sent in request body
+   =================================================== */
+
 function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
@@ -409,41 +446,55 @@ document.getElementById("popupForm").addEventListener("submit", async function (
   try {
     if (editType === "category") {
       var parentId = document.getElementById("editCategoryParentId").value;
+
+      // Send categoryId in body — no path variable
       var data = {
-        parentId   : parentId ? Number(parentId) : null,
+        categoryId : editId,
         name       : document.getElementById("editCategoryName").value.trim(),
         slug       : document.getElementById("editCategorySlug").value.trim(),
-        isActive   : document.getElementById("editCategoryIsActive").value === "true",
-        modifiedBy : adminUserId()
+        parentId   : parentId ? Number(parentId) : null
       };
-      await apiSend("/admin/categories/" + editId, "PUT", data);
+
+      await apiSend("/admin/categories", "PUT", data);
       loadCategories();
     }
 
     if (editType === "product") {
+      var price = document.getElementById("editVariantPrice") ?
+                  document.getElementById("editVariantPrice").value : null;
+
+      // Send productId in body — no path variable
       var data = {
+        productId    : editId,
         name         : document.getElementById("editProductName").value.trim(),
         description  : document.getElementById("editProductDescription").value,
         mainImageKey : document.getElementById("editProductImage").value,
-        status       : document.getElementById("editProductStatus").value,
-        isActive     : document.getElementById("editProductIsActive").value === "true",
-        modifiedBy   : adminUserId()
+        isActive     : document.getElementById("editProductIsActive").value === "true"
       };
-      await apiSend("/admin/products/" + editId, "PUT", data);
+
+      await apiSend("/admin/products", "PUT", data);
       loadProducts();
     }
 
     if (editType === "variant") {
       var price = document.getElementById("editVariantPrice").value;
+
+      if (isEmpty(price) || Number(price) <= 0) {
+        showMessage("Price is required and must be greater than 0.");
+        return;
+      }
+
+      // Send variantId in body — no path variable
       var data = {
-        sku        : document.getElementById("editVariantSku").value.trim(),
-        color      : document.getElementById("editVariantColor").value,
-        size       : document.getElementById("editVariantSize").value,
-        price      : price ? Number(price) : null,
-        isActive   : document.getElementById("editVariantIsActive").value === "true",
-        modifiedBy : adminUserId()
+        variantId : editId,
+        sku       : document.getElementById("editVariantSku").value.trim(),
+        color     : document.getElementById("editVariantColor").value,
+        size      : document.getElementById("editVariantSize").value,
+        price     : Number(price),
+        isActive  : document.getElementById("editVariantIsActive").value === "true"
       };
-      await apiSend("/admin/variants/" + editId, "PUT", data);
+
+      await apiSend("/admin/variants", "PUT", data);
     }
 
     closePopup();
