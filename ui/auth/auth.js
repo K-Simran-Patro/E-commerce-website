@@ -217,7 +217,6 @@ if (loginForm) {
       showAuthMessage("loginMessage", "Login successful! Redirecting...", "green");
 
       // Redirect based on role from JWT
-      // role is "admin" (lowercase) as stored in DB
       setTimeout(function () {
         if (decoded.role === "admin") {
           window.location.href = "/admin/admin.html";
