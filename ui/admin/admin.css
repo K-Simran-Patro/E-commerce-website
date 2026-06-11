@@ -182,28 +182,58 @@ button:hover {
   max-width: 300px;
 }
 
-/* GRID VIEW */
+/* Table VIEW */
 
 .list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 18px;
+  width: 100%;
+  overflow-x: auto;
 }
 
-.item {
-  padding: 18px;
-  background: #f9fafb;
-  border: 1px solid #ddd;
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
   border-radius: 12px;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 15px;
+  overflow: hidden;
 }
 
-.item-details {
-  flex: 1;
+.data-table th {
+  background: #111827;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.data-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 14px;
+}
+
+.data-table tr:hover {
+  background: #f3f4f6;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.action-buttons button {
+  padding: 8px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.update-btn {
+  background: #f59e0b;
+}
+
+.delete-btn {
+  background: #dc2626;
 }
 
 .item h4 {
@@ -214,17 +244,6 @@ button:hover {
 .item p {
   margin: 5px 0;
   color: #374151;
-}
-
-.item-actions {
-  min-width: 95px;
-  display: grid;
-  gap: 8px;
-}
-
-.item-actions button {
-  width: 100%;
-  text-align: center;
 }
 
 /* POPUP */

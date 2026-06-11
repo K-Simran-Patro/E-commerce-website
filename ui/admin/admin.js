@@ -232,23 +232,47 @@ function showCategories(data) {
     return;
   }
 
-  data.forEach(function (c) {
-    box.innerHTML += `
-      <div class="item">
-        <div class="item-details">
-          <h4>${c.name || "-"}</h4>
-          <p><b>ID:</b> ${c.categoryId}</p>
-          <p><b>Parent ID:</b> ${c.parentId || "-"}</p>
-          <p><b>Slug:</b> ${c.slug || "-"}</p>
-        </div>
+  var table = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Category Name</th>
+          <th>Slug</th>
+          <th>Parent ID</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-        <div class="item-actions">
-          <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>Update</button>
-          <button class="delete-btn" onclick="deleteCategory(${c.categoryId})">Delete</button>
-        </div>
-      </div>
+  data.forEach(function (c) {
+    table += `
+      <tr>
+        <td>${c.categoryId || "-"}</td>
+        <td>${c.name || "-"}</td>
+        <td>${c.slug || "-"}</td>
+        <td>${c.parentId || "-"}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>
+              Update
+            </button>
+            <button class="delete-btn" onclick="deleteCategory(${c.categoryId})">
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
     `;
   });
+
+  table += `
+      </tbody>
+    </table>
+  `;
+
+  box.innerHTML = table;
 }
 
 function hasChildCategory(categoryId) {
@@ -401,24 +425,51 @@ function showProducts(data) {
     return;
   }
 
-  data.forEach(function (p) {
-    box.innerHTML += `
-      <div class="item">
-        <div class="item-details">
-          <h4>${p.name || "-"}</h4>
-          <p><b>ID:</b> ${p.productId}</p>
-          <p><b>Category ID:</b> ${p.categoryId}</p>
-          <p><b>Brand:</b> ${p.brandName || "-"}</p>
-          <p><b>Image:</b> ${p.mainImageKey || "-"}</p>
-        </div>
+  var table = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product Name</th>
+          <th>Category ID</th>
+          <th>Brand</th>
+          <th>Image Key</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-        <div class="item-actions">
-          <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>Update</button>
-          <button class="delete-btn" onclick="deleteProduct(${p.productId})">Delete</button>
-        </div>
-      </div>
+  data.forEach(function (p) {
+    table += `
+      <tr>
+        <td>${p.productId || "-"}</td>
+        <td>${p.name || "-"}</td>
+        <td>${p.categoryId || "-"}</td>
+        <td>${p.brandName || "-"}</td>
+        <td>${p.mainImageKey || "-"}</td>
+        <td>${p.isActive === true ? "Yes" : "No"}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>
+              Update
+            </button>
+            <button class="delete-btn" onclick="deleteProduct(${p.productId})">
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
     `;
   });
+
+  table += `
+      </tbody>
+    </table>
+  `;
+
+  box.innerHTML = table;
 }
 
 function openProductPopup(p) {
@@ -561,25 +612,53 @@ function showVariants(data) {
     return;
   }
 
-  data.forEach(function (v) {
-    box.innerHTML += `
-      <div class="item">
-        <div class="item-details">
-          <h4>${v.sku || "-"}</h4>
-          <p><b>ID:</b> ${v.variantId}</p>
-          <p><b>Product ID:</b> ${v.productId}</p>
-          <p><b>Color:</b> ${v.color || "-"}</p>
-          <p><b>Size:</b> ${v.size || "-"}</p>
-          <p><b>Price:</b> ${v.price || "-"}</p>
-        </div>
+  var table = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Product ID</th>
+          <th>SKU</th>
+          <th>Color</th>
+          <th>Size</th>
+          <th>Price</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-        <div class="item-actions">
-          <button class="update-btn" onclick='openVariantPopup(${JSON.stringify(v)})'>Update</button>
-          <button class="delete-btn" onclick="deleteVariant(${v.variantId})">Delete</button>
-        </div>
-      </div>
+  data.forEach(function (v) {
+    table += `
+      <tr>
+        <td>${v.variantId || "-"}</td>
+        <td>${v.productId || "-"}</td>
+        <td>${v.sku || "-"}</td>
+        <td>${v.color || "-"}</td>
+        <td>${v.size || "-"}</td>
+        <td>${v.price || "-"}</td>
+        <td>${v.isActive === true ? "Yes" : "No"}</td>
+        <td>
+          <div class="action-buttons">
+            <button class="update-btn" onclick='openVariantPopup(${JSON.stringify(v)})'>
+              Update
+            </button>
+            <button class="delete-btn" onclick="deleteVariant(${v.variantId})">
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
     `;
   });
+
+  table += `
+      </tbody>
+    </table>
+  `;
+
+  box.innerHTML = table;
 }
 
 function openVariantPopup(v) {
