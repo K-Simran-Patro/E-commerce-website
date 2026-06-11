@@ -2,77 +2,131 @@
 guardAdmin();
 
 var editType = "";
-var editId   = null;
+var editId = null;
+var editLabel = "";
 
 // ── Admin service URL ────────────────────────────────────────
 function apiUrl() {
   var input = document.getElementById("apiUrl");
-  if (input && input.value.trim()) return input.value.trim();
+
+  if (input && input.value.trim()) {
+    return input.value.trim();
+  }
+
   return ADMIN_SERVICE;
 }
 
-// ── Save URL to localStorage ─────────────────────────────────
-function saveAuth() {
-  var input = document.getElementById("apiUrl");
-  if (input && input.value.trim()) {
-    localStorage.setItem("adminServiceUrl", input.value.trim());
-    showMessage("Backend URL saved.");
-  }
+function adminUserId() {
+  return localStorage.getItem("adminUserId") || "";
 }
-
-window.addEventListener("load", function () {
-  var savedUrl = localStorage.getItem("adminServiceUrl");
-  var input    = document.getElementById("apiUrl");
-  if (savedUrl && input) input.value = savedUrl;
-});
-
-function adminUserId() { return localStorage.getItem("adminUserId") || ""; }
 
 function showMessage(text) {
   var box = document.getElementById("message");
-  if (box) box.innerText = text;
+
+  if (box) {
+    box.innerText = text;
+  }
+}
+
+function showToast(message, type) {
+  var toast = document.getElementById("toast");
+  var toastBox = document.getElementById("toastBox");
+
+  toastBox.className = "toast-box " + (type || "success");
+  toastBox.innerText = message;
+
+  toast.classList.remove("hidden");
+
+  setTimeout(function () {
+    toast.classList.add("hidden");
+  }, 1800);
+}
+
+function toggleMenu(id) {
+  document.getElementById(id).classList.toggle("hidden");
 }
 
 function showPage(id) {
-  document.querySelectorAll(".page").forEach(function (p) { p.classList.add("hidden"); });
+  document.querySelectorAll(".page").forEach(function (p) {
+    p.classList.add("hidden");
+  });
+
   document.getElementById(id).classList.remove("hidden");
   showMessage("");
+
   if (id === "categoryPage") loadCategories();
-  if (id === "productPage")  loadProducts();
+  if (id === "productPage") loadProducts();
 }
 
 function isEmpty(value) {
   return value === null || value === undefined || String(value).trim() === "";
 }
 
+function setButtonLoading(buttonId, isLoading) {
+  var button = document.getElementById(buttonId);
+
+  if (!button) return;
+
+  var text = button.querySelector(".btn-text");
+  var spinner = button.querySelector(".spinner");
+
+  if (isLoading) {
+    button.disabled = true;
+    button.classList.add("loading");
+    if (spinner) spinner.classList.remove("hidden");
+    if (text) text.classList.add("hidden");
+  } else {
+    button.disabled = false;
+    button.classList.remove("loading");
+    if (spinner) spinner.classList.add("hidden");
+    if (text) text.classList.remove("hidden");
+  }
+}
+
 // ── API helpers ──────────────────────────────────────────────
-// getHeaders() from utils.js adds:
-//   Authorization: Bearer token
-//   X-User-Name: email  ← admin service reads this for audit log
+// getHeaders() from utils.js adds Authorization and X-User-Name.
 
 async function apiGet(path) {
   var response = await fetch(apiUrl() + path, {
-    method  : "GET",
-    headers : getHeaders()
+    method: "GET",
+    headers: getHeaders()
   });
+
   if (handleUnauthorized(response.status)) return null;
+
   var text = await response.text();
-  if (!response.ok) throw new Error(text || "Request failed");
+
+  if (!response.ok) {
+    throw new Error(text || "Request failed");
+  }
+
   if (!text) return null;
+
   return JSON.parse(text);
 }
 
 async function apiSend(path, method, data) {
   var response = await fetch(apiUrl() + path, {
-    method  : method,
-    headers : getHeaders(),
-    body    : JSON.stringify(data)
+    method: method,
+    headers: getHeaders(),
+    body: JSON.stringify(data)
   });
+
   if (handleUnauthorized(response.status)) return null;
+
   var text = await response.text();
-  if (!response.ok) throw new Error(text || "Request failed");
+
+  if (!response.ok) {
+    throw new Error(text || "Request failed");
+  }
+
   if (!text) return null;
-  try { return JSON.parse(text); } catch { return text; }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 function checkAuth() {
@@ -81,61 +135,81 @@ function checkAuth() {
     window.location.href = "/auth/login.html";
     return false;
   }
+
   return true;
 }
 
-
 /* ===================================================
    CATEGORIES
-   Fields accepted by backend:
-   categoryId, name, slug, parentId
-
-   NOTE: No path variable in admin service.
-   Update and Delete send ID in request body.
-   Search by ID filters from loaded data.
+   API paths unchanged:
+   GET    /admin/categories
+   POST   /admin/categories
+   PUT    /admin/categories
+   DELETE /admin/categories
    =================================================== */
 
 var categoryData = [];
 
 document.getElementById("categoryForm").addEventListener("submit", async function (e) {
   e.preventDefault();
+
   if (!checkAuth()) return;
 
-  var name     = document.getElementById("categoryName").value.trim();
-  var slug     = document.getElementById("categorySlug").value.trim();
+  var name = document.getElementById("categoryName").value.trim();
+  var slug = document.getElementById("categorySlug").value.trim();
   var parentId = document.getElementById("categoryParentId").value;
 
-  if (isEmpty(name)) { showMessage("Category name is required."); return; }
-  if (isEmpty(slug)) { showMessage("Category slug is required."); return; }
+  if (isEmpty(name)) {
+    showToast("Category name is required.", "error");
+    return;
+  }
 
-  // Only send fields that backend DTO accepts
+  if (isEmpty(slug)) {
+    showToast("Category slug is required.", "error");
+    return;
+  }
+
   var data = {
-    name     : name,
-    slug     : slug,
-    parentId : parentId ? Number(parentId) : null
+    name: name,
+    slug: slug,
+    parentId: parentId ? Number(parentId) : null
   };
 
   try {
     await apiSend("/admin/categories", "POST", data);
-    showMessage("Category created successfully.");
     this.reset();
     loadCategories();
-  } catch (error) { showMessage(error.message); }
+    showToast(name + " category created successfully.", "success");
+  } catch (error) {
+    showToast(error.message || name + " category was not created.", "error");
+  }
 });
 
 async function loadCategories() {
+  setButtonLoading("categoryLoadBtn", true);
+
   try {
     var data = await apiGet("/admin/categories");
-    categoryData = data || [];
+
+    categoryData = (data || []).filter(function (c) {
+      return c.isActive === true || c.isActive === undefined;
+    });
+
     showCategories(categoryData);
-  } catch (error) { showMessage(error.message); }
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+
+  setButtonLoading("categoryLoadBtn", false);
 }
 
-// Search filters from already loaded data — no separate API call
-// (admin service has no GET /admin/categories/{id})
 function searchCategory() {
   var id = document.getElementById("categorySearchId").value;
-  if (!id) { showMessage("Enter a category ID."); return; }
+
+  if (!id) {
+    showToast("Enter a category ID.", "error");
+    return;
+  }
 
   var found = categoryData.filter(function (c) {
     return String(c.categoryId) === String(id);
@@ -145,110 +219,166 @@ function searchCategory() {
     showCategories(found);
   } else {
     showCategories([]);
-    showMessage("Category not found. Click View All to reload.");
+    showToast(id + " id not found.", "error");
   }
 }
 
 function showCategories(data) {
   var box = document.getElementById("categoryList");
   box.innerHTML = "";
-  if (!data || data.length === 0) { box.innerHTML = "<p>No categories found.</p>"; return; }
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active categories found.</p>";
+    return;
+  }
 
   data.forEach(function (c) {
     box.innerHTML += `
       <div class="item">
-        <h4>${c.name}</h4>
-        <p><b>ID:</b> ${c.categoryId}</p>
-        <p><b>Parent ID:</b> ${c.parentId || "-"}</p>
-        <p><b>Slug:</b> ${c.slug}</p>
-        <p><b>Created By:</b> ${c.createdBy || "-"}</p>
+        <div class="item-details">
+          <h4>${c.name || "-"}</h4>
+          <p><b>ID:</b> ${c.categoryId}</p>
+          <p><b>Parent ID:</b> ${c.parentId || "-"}</p>
+          <p><b>Slug:</b> ${c.slug || "-"}</p>
+        </div>
+
         <div class="item-actions">
           <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>Update</button>
           <button class="delete-btn" onclick="deleteCategory(${c.categoryId})">Delete</button>
         </div>
-      </div>`;
+      </div>
+    `;
+  });
+}
+
+function hasChildCategory(categoryId) {
+  return categoryData.some(function (c) {
+    return Number(c.parentId) === Number(categoryId);
   });
 }
 
 function openCategoryPopup(c) {
   editType = "category";
-  editId   = c.categoryId;
+  editId = c.categoryId;
+  editLabel = c.name || "Category";
+
   document.getElementById("popupTitle").innerText = "Update Category";
+
   document.getElementById("popupFields").innerHTML = `
     <label>Parent Category ID</label>
     <input id="editCategoryParentId" type="number" value="${c.parentId || ""}" />
+
     <label>Category Name</label>
     <input id="editCategoryName" value="${c.name || ""}" />
+
     <label>Slug</label>
-    <input id="editCategorySlug" value="${c.slug || ""}" />`;
+    <input id="editCategorySlug" value="${c.slug || ""}" />
+  `;
+
   document.getElementById("popup").classList.remove("hidden");
 }
 
-// FIX: Delete sends ID in request body, not path variable
 async function deleteCategory(id) {
   if (!checkAuth()) return;
-  if (!confirm("Delete this category?")) return;
+
+  var category = categoryData.find(function (c) {
+    return Number(c.categoryId) === Number(id);
+  });
+
+  if (!category) {
+    showToast(id + " id not found.", "error");
+    return;
+  }
+
+  if (hasChildCategory(id)) {
+    showToast(category.name + " category has sub categories. It cannot be deleted.", "error");
+    return;
+  }
+
+  if (!confirm("Delete " + category.name + " category?")) return;
 
   try {
     await apiSend("/admin/categories", "DELETE", { categoryId: id });
-    showMessage("Category deleted.");
     loadCategories();
-  } catch (error) { showMessage(error.message); }
+    showToast(category.name + " category deleted successfully.", "success");
+  } catch (error) {
+    showToast(error.message || category.name + " category was not deleted.", "error");
+  }
 }
-
 
 /* ===================================================
    PRODUCTS
-   Fields accepted by backend:
-   productId, categoryId, brandName, name,
-   description, mainImageKey, isActive
-
-   NOTE: status field removed — not in product DTO.
+   API paths unchanged:
+   GET    /admin/products
+   POST   /admin/products
+   PUT    /admin/products
+   DELETE /admin/products
    =================================================== */
 
 var productData = [];
 
 document.getElementById("productForm").addEventListener("submit", async function (e) {
   e.preventDefault();
+
   if (!checkAuth()) return;
 
-  var name       = document.getElementById("productName").value.trim();
+  var name = document.getElementById("productName").value.trim();
   var categoryId = document.getElementById("productCategoryId").value;
 
-  if (isEmpty(name))       { showMessage("Product name is required."); return; }
-  if (isEmpty(categoryId)) { showMessage("Category ID is required."); return; }
+  if (isEmpty(name)) {
+    showToast("Product name is required.", "error");
+    return;
+  }
 
-  // Only send fields that backend DTO accepts
-  // status is NOT included — product DTO doesn't have it
+  if (isEmpty(categoryId)) {
+    showToast("Category ID is required.", "error");
+    return;
+  }
+
   var data = {
-    categoryId   : Number(categoryId),
-    brandName    : document.getElementById("productBrandName").value.trim(),
-    name         : name,
-    description  : document.getElementById("productDescription").value,
-    mainImageKey : document.getElementById("productImage").value,
-    isActive     : document.getElementById("productIsActive").value === "true"
+    categoryId: Number(categoryId),
+    brandName: document.getElementById("productBrandName").value.trim(),
+    name: name,
+    description: document.getElementById("productDescription").value,
+    mainImageKey: document.getElementById("productImage").value,
+    isActive: document.getElementById("productIsActive").value === "true"
   };
 
   try {
     await apiSend("/admin/products", "POST", data);
-    showMessage("Product created successfully.");
     this.reset();
     loadProducts();
-  } catch (error) { showMessage(error.message); }
+    showToast(name + " product created successfully.", "success");
+  } catch (error) {
+    showToast(error.message || name + " product was not created.", "error");
+  }
 });
 
 async function loadProducts() {
+  setButtonLoading("productLoadBtn", true);
+
   try {
     var data = await apiGet("/admin/products");
-    productData = data || [];
+
+    productData = (data || []).filter(function (p) {
+      return p.isActive === true || p.isActive === undefined;
+    });
+
     showProducts(productData);
-  } catch (error) { showMessage(error.message); }
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+
+  setButtonLoading("productLoadBtn", false);
 }
 
-// Search filters from already loaded data
 function searchProduct() {
   var id = document.getElementById("productSearchId").value;
-  if (!id) { showMessage("Enter a product ID."); return; }
+
+  if (!id) {
+    showToast("Enter a product ID.", "error");
+    return;
+  }
 
   var found = productData.filter(function (p) {
     return String(p.productId) === String(id);
@@ -258,181 +388,258 @@ function searchProduct() {
     showProducts(found);
   } else {
     showProducts([]);
-    showMessage("Product not found. Click View All to reload.");
+    showToast(id + " id not found.", "error");
   }
 }
 
 function showProducts(data) {
   var box = document.getElementById("productList");
   box.innerHTML = "";
-  if (!data || data.length === 0) { box.innerHTML = "<p>No products found.</p>"; return; }
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active products found.</p>";
+    return;
+  }
 
   data.forEach(function (p) {
     box.innerHTML += `
       <div class="item">
-        <h4>${p.name}</h4>
-        <p><b>ID:</b> ${p.productId}</p>
-        <p><b>Category ID:</b> ${p.categoryId}</p>
-        <p><b>Brand:</b> ${p.brandName || "-"}</p>
-        <p><b>Created By:</b> ${p.createdBy || "-"}</p>
+        <div class="item-details">
+          <h4>${p.name || "-"}</h4>
+          <p><b>ID:</b> ${p.productId}</p>
+          <p><b>Category ID:</b> ${p.categoryId}</p>
+          <p><b>Brand:</b> ${p.brandName || "-"}</p>
+          <p><b>Image:</b> ${p.mainImageKey || "-"}</p>
+        </div>
+
         <div class="item-actions">
           <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>Update</button>
           <button class="delete-btn" onclick="deleteProduct(${p.productId})">Delete</button>
         </div>
-      </div>`;
+      </div>
+    `;
   });
 }
 
 function openProductPopup(p) {
   editType = "product";
-  editId   = p.productId;
+  editId = p.productId;
+  editLabel = p.name || "Product";
+
   document.getElementById("popupTitle").innerText = "Update Product";
+
   document.getElementById("popupFields").innerHTML = `
     <label>Product Name</label>
     <input id="editProductName" value="${p.name || ""}" />
+
     <label>Description</label>
     <textarea id="editProductDescription">${p.description || ""}</textarea>
+
     <label>Main Image Key</label>
     <input id="editProductImage" value="${p.mainImageKey || ""}" />
+
     <label>Is Active</label>
     <select id="editProductIsActive">
-      <option value="true"  ${p.isActive ? "selected" : ""}>true</option>
+      <option value="true" ${p.isActive ? "selected" : ""}>true</option>
       <option value="false" ${!p.isActive ? "selected" : ""}>false</option>
-    </select>`;
+    </select>
+  `;
+
   document.getElementById("popup").classList.remove("hidden");
 }
 
-// FIX: Delete sends ID in request body
 async function deleteProduct(id) {
   if (!checkAuth()) return;
-  if (!confirm("Delete this product?")) return;
 
-  try {
-    await apiSend("/admin/products", "DELETE", { productId: id });
-    showMessage("Product deleted.");
-    loadProducts();
-  } catch (error) { showMessage(error.message); }
-}
+  var product = productData.find(function (p) {
+    return Number(p.productId) === Number(id);
+  });
 
-
-/* ===================================================
-   VARIANTS
-   Fields accepted by backend:
-   variantId, productId, sku, color, size, price, isActive
-
-   NOTE: price is required and must be > 0
-   Search: GET /admin/variants then filter by productId
-   =================================================== */
-
-document.getElementById("variantForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
-  if (!checkAuth()) return;
-
-  var productId = document.getElementById("variantProductId").value;
-  var sku       = document.getElementById("variantSku").value.trim();
-  var price     = document.getElementById("variantPrice").value;
-
-  if (isEmpty(productId)) { showMessage("Product ID is required."); return; }
-  if (isEmpty(sku))       { showMessage("SKU is required."); return; }
-  if (isEmpty(price) || Number(price) <= 0) {
-    showMessage("Price is required and must be greater than 0.");
+  if (!product) {
+    showToast(id + " id not found.", "error");
     return;
   }
 
-  // Only send fields that backend DTO accepts
+  if (!confirm("Delete " + product.name + " product?")) return;
+
+  try {
+    await apiSend("/admin/products", "DELETE", { productId: id });
+    loadProducts();
+    showToast(product.name + " product deleted successfully.", "success");
+  } catch (error) {
+    showToast(error.message || product.name + " product was not deleted.", "error");
+  }
+}
+
+/* ===================================================
+   VARIANTS
+   API paths unchanged:
+   GET    /admin/variants
+   POST   /admin/variants
+   PUT    /admin/variants
+   DELETE /admin/variants
+   =================================================== */
+
+var variantData = [];
+
+document.getElementById("variantForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  if (!checkAuth()) return;
+
+  var productId = document.getElementById("variantProductId").value;
+  var sku = document.getElementById("variantSku").value.trim();
+  var price = document.getElementById("variantPrice").value;
+
+  if (isEmpty(productId)) {
+    showToast("Product ID is required.", "error");
+    return;
+  }
+
+  if (isEmpty(sku)) {
+    showToast("SKU is required.", "error");
+    return;
+  }
+
+  if (isEmpty(price) || Number(price) <= 0) {
+    showToast("Price is required and must be greater than 0.", "error");
+    return;
+  }
+
   var data = {
-    productId : Number(productId),
-    sku       : sku,
-    color     : document.getElementById("variantColor").value,
-    size      : document.getElementById("variantSize").value,
-    price     : Number(price),
-    isActive  : document.getElementById("variantIsActive").value === "true"
+    productId: Number(productId),
+    sku: sku,
+    color: document.getElementById("variantColor").value,
+    size: document.getElementById("variantSize").value,
+    price: Number(price),
+    isActive: document.getElementById("variantIsActive").value === "true"
   };
 
   try {
     await apiSend("/admin/variants", "POST", data);
-    showMessage("Variant created successfully.");
     this.reset();
-  } catch (error) { showMessage(error.message); }
+    showToast(sku + " variant created successfully.", "success");
+  } catch (error) {
+    showToast(error.message || sku + " variant was not created.", "error");
+  }
 });
 
-// FIX: Call GET /admin/variants then filter by productId on frontend
-// (admin service has no GET /admin/variants/product/{id})
 async function searchVariantsByProduct() {
   var productId = document.getElementById("variantSearchProductId").value;
-  if (!productId) { showMessage("Enter a product ID."); return; }
+
+  if (!productId) {
+    showToast("Enter a product ID.", "error");
+    return;
+  }
+
+  setButtonLoading("variantLoadBtn", true);
 
   try {
     var data = await apiGet("/admin/variants");
 
-    var filtered = (data || []).filter(function (v) {
-      return String(v.productId) === String(productId);
+    variantData = data || [];
+
+    var filtered = variantData.filter(function (v) {
+      var active = v.isActive === true || v.isActive === undefined;
+      return active && String(v.productId) === String(productId);
     });
 
     showVariants(filtered);
-  } catch (error) { showMessage(error.message); }
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+
+  setButtonLoading("variantLoadBtn", false);
 }
 
 function showVariants(data) {
   var box = document.getElementById("variantList");
   box.innerHTML = "";
-  if (!data || data.length === 0) { box.innerHTML = "<p>No variants found for this product.</p>"; return; }
+
+  if (!data || data.length === 0) {
+    box.innerHTML = "<p>No active variants found for this product.</p>";
+    return;
+  }
 
   data.forEach(function (v) {
     box.innerHTML += `
       <div class="item">
-        <h4>${v.sku}</h4>
-        <p><b>ID:</b> ${v.variantId}</p>
-        <p><b>Product ID:</b> ${v.productId}</p>
-        <p><b>Color:</b> ${v.color || "-"}</p>
-        <p><b>Size:</b> ${v.size || "-"}</p>
-        <p><b>Price:</b> ${v.price || "-"}</p>
-        <p><b>Created By:</b> ${v.createdBy || "-"}</p>
+        <div class="item-details">
+          <h4>${v.sku || "-"}</h4>
+          <p><b>ID:</b> ${v.variantId}</p>
+          <p><b>Product ID:</b> ${v.productId}</p>
+          <p><b>Color:</b> ${v.color || "-"}</p>
+          <p><b>Size:</b> ${v.size || "-"}</p>
+          <p><b>Price:</b> ${v.price || "-"}</p>
+        </div>
+
         <div class="item-actions">
           <button class="update-btn" onclick='openVariantPopup(${JSON.stringify(v)})'>Update</button>
           <button class="delete-btn" onclick="deleteVariant(${v.variantId})">Delete</button>
         </div>
-      </div>`;
+      </div>
+    `;
   });
 }
 
 function openVariantPopup(v) {
   editType = "variant";
-  editId   = v.variantId;
+  editId = v.variantId;
+  editLabel = v.sku || "Variant";
+
   document.getElementById("popupTitle").innerText = "Update Variant";
+
   document.getElementById("popupFields").innerHTML = `
     <label>SKU</label>
     <input id="editVariantSku" value="${v.sku || ""}" />
+
     <label>Color</label>
     <input id="editVariantColor" value="${v.color || ""}" />
+
     <label>Size</label>
     <input id="editVariantSize" value="${v.size || ""}" />
+
     <label>Price</label>
     <input id="editVariantPrice" type="number" step="0.01" value="${v.price || ""}" />
+
     <label>Is Active</label>
     <select id="editVariantIsActive">
-      <option value="true"  ${v.isActive ? "selected" : ""}>true</option>
+      <option value="true" ${v.isActive ? "selected" : ""}>true</option>
       <option value="false" ${!v.isActive ? "selected" : ""}>false</option>
-    </select>`;
+    </select>
+  `;
+
   document.getElementById("popup").classList.remove("hidden");
 }
 
-// FIX: Delete sends ID in request body
 async function deleteVariant(id) {
   if (!checkAuth()) return;
-  if (!confirm("Delete this variant?")) return;
+
+  var variant = variantData.find(function (v) {
+    return Number(v.variantId) === Number(id);
+  });
+
+  if (!variant) {
+    showToast(id + " id not found.", "error");
+    return;
+  }
+
+  if (!confirm("Delete " + variant.sku + " variant?")) return;
 
   try {
     await apiSend("/admin/variants", "DELETE", { variantId: id });
-    showMessage("Variant deleted.");
-  } catch (error) { showMessage(error.message); }
+    showToast(variant.sku + " variant deleted successfully.", "success");
+  } catch (error) {
+    showToast(error.message || variant.sku + " variant was not deleted.", "error");
+  }
 }
 
-
 /* ===================================================
-   POPUP — Update form
-   FIX: All updates go to /admin/xxx (no path variable)
-   ID is sent in request body
+   POPUP UPDATE
+   API paths unchanged:
+   PUT /admin/categories
+   PUT /admin/products
+   PUT /admin/variants
    =================================================== */
 
 function closePopup() {
@@ -441,63 +648,66 @@ function closePopup() {
 
 document.getElementById("popupForm").addEventListener("submit", async function (e) {
   e.preventDefault();
+
   if (!checkAuth()) return;
 
   try {
     if (editType === "category") {
       var parentId = document.getElementById("editCategoryParentId").value;
+      var name = document.getElementById("editCategoryName").value.trim();
 
-      // Send categoryId in body — no path variable
       var data = {
-        categoryId : editId,
-        name       : document.getElementById("editCategoryName").value.trim(),
-        slug       : document.getElementById("editCategorySlug").value.trim(),
-        parentId   : parentId ? Number(parentId) : null
+        categoryId: editId,
+        name: name,
+        slug: document.getElementById("editCategorySlug").value.trim(),
+        parentId: parentId ? Number(parentId) : null
       };
 
       await apiSend("/admin/categories", "PUT", data);
       loadCategories();
+      showToast(name + " category updated successfully.", "success");
     }
 
     if (editType === "product") {
-      var price = document.getElementById("editVariantPrice") ?
-                  document.getElementById("editVariantPrice").value : null;
+      var productName = document.getElementById("editProductName").value.trim();
 
-      // Send productId in body — no path variable
-      var data = {
-        productId    : editId,
-        name         : document.getElementById("editProductName").value.trim(),
-        description  : document.getElementById("editProductDescription").value,
-        mainImageKey : document.getElementById("editProductImage").value,
-        isActive     : document.getElementById("editProductIsActive").value === "true"
+      var productDataToUpdate = {
+        productId: editId,
+        name: productName,
+        description: document.getElementById("editProductDescription").value,
+        mainImageKey: document.getElementById("editProductImage").value,
+        isActive: document.getElementById("editProductIsActive").value === "true"
       };
 
-      await apiSend("/admin/products", "PUT", data);
+      await apiSend("/admin/products", "PUT", productDataToUpdate);
       loadProducts();
+      showToast(productName + " product updated successfully.", "success");
     }
 
     if (editType === "variant") {
       var price = document.getElementById("editVariantPrice").value;
+      var sku = document.getElementById("editVariantSku").value.trim();
 
       if (isEmpty(price) || Number(price) <= 0) {
-        showMessage("Price is required and must be greater than 0.");
+        showToast("Price is required and must be greater than 0.", "error");
         return;
       }
 
-      // Send variantId in body — no path variable
-      var data = {
-        variantId : editId,
-        sku       : document.getElementById("editVariantSku").value.trim(),
-        color     : document.getElementById("editVariantColor").value,
-        size      : document.getElementById("editVariantSize").value,
-        price     : Number(price),
-        isActive  : document.getElementById("editVariantIsActive").value === "true"
+      var variantDataToUpdate = {
+        variantId: editId,
+        sku: sku,
+        color: document.getElementById("editVariantColor").value,
+        size: document.getElementById("editVariantSize").value,
+        price: Number(price),
+        isActive: document.getElementById("editVariantIsActive").value === "true"
       };
 
-      await apiSend("/admin/variants", "PUT", data);
+      await apiSend("/admin/variants", "PUT", variantDataToUpdate);
+      showToast(sku + " variant updated successfully.", "success");
     }
 
     closePopup();
-    showMessage("Updated successfully.");
-  } catch (error) { showMessage(error.message); }
+  } catch (error) {
+    showToast(error.message || editLabel + " update failed.", "error");
+  }
 });

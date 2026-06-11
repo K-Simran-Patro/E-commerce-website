@@ -6,8 +6,10 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #060606;
-  color: #2563eb;
+  color: #111827;
 }
+
+/* SIDEBAR */
 
 .sidebar {
   width: 280px;
@@ -21,6 +23,7 @@ body {
 
 .sidebar h2 {
   margin-top: 0;
+  margin-bottom: 20px;
 }
 
 .sidebar button {
@@ -33,10 +36,29 @@ body {
   border-radius: 8px;
   text-align: left;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .sidebar button:hover {
   background: #1d4ed8;
+}
+
+.main-menu-btn {
+  background: #1d4ed8 !important;
+}
+
+.sub-menu {
+  margin-left: 15px;
+  margin-bottom: 10px;
+}
+
+.sub-menu button {
+  background: #374151;
+  font-weight: normal;
+}
+
+.sub-menu button:hover {
+  background: #4b5563;
 }
 
 .sidebar hr {
@@ -52,38 +74,52 @@ body {
   border-radius: 10px;
 }
 
-.api-box label {
-  display: block;
-  font-size: 13px;
-  margin-top: 10px;
-  color: #d1d5db;
-}
-
-.api-box input,
-.api-box textarea {
-  width: 100%;
-  margin-top: 5px;
-  padding: 9px;
-  border: none;
-  border-radius: 6px;
-}
-
-.api-box textarea {
-  height: 70px;
-}
+/* MAIN */
 
 .main {
   margin-left: 280px;
+  min-height: 100vh;
   padding: 35px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.main h1 {
+  color: white;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#message {
+  margin-bottom: 18px;
+  font-weight: bold;
+  color: #60a5fa;
+  text-align: center;
+}
+
+.page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .card {
   background: white;
   padding: 25px;
   border-radius: 14px;
-  max-width: 1000px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 1050px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
+
+.card h2,
+.card h3 {
+  color: #111827;
+}
+
+/* FORMS */
 
 form {
   display: grid;
@@ -115,6 +151,7 @@ button {
   cursor: pointer;
   background: #16a34a;
   color: white;
+  font-weight: bold;
 }
 
 button:hover {
@@ -133,6 +170,8 @@ button:hover {
   background: #6b7280;
 }
 
+/* SEARCH */
+
 .search-row {
   display: flex;
   gap: 10px;
@@ -143,40 +182,49 @@ button:hover {
   max-width: 300px;
 }
 
+/* GRID VIEW */
+
 .list {
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
 }
 
 .item {
-  padding: 15px;
+  padding: 18px;
   background: #f9fafb;
   border: 1px solid #ddd;
-  border-radius: 10px;
+  border-radius: 12px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.item-details {
+  flex: 1;
 }
 
 .item h4 {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
+  color: #111827;
 }
 
 .item p {
-  margin: 4px 0;
+  margin: 5px 0;
+  color: #374151;
 }
 
 .item-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  min-width: 95px;
+  display: grid;
+  gap: 8px;
 }
 
-#message {
-  margin-bottom: 18px;
-  font-weight: bold;
-  color: #2563eb;
-}
-
-.hidden {
-  display: none;
+.item-actions button {
+  width: 100%;
+  text-align: center;
 }
 
 /* POPUP */
@@ -191,6 +239,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 20;
 }
 
 .popup.hidden {
@@ -211,6 +260,84 @@ button:hover {
   gap: 10px;
 }
 
+/* TOAST CENTER MESSAGE */
+
+.toast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+}
+
+.toast.hidden {
+  display: none;
+}
+
+.toast-box {
+  background: white;
+  color: #111827;
+  padding: 22px 32px;
+  border-radius: 14px;
+  font-weight: bold;
+  font-size: 18px;
+  min-width: 280px;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.toast-box.success {
+  border-top: 6px solid #16a34a;
+}
+
+.toast-box.error {
+  border-top: 6px solid #dc2626;
+}
+
+/* LOADING SPINNER */
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
+  border-top: 3px solid transparent;
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+button.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+/* MOBILE */
+
 @media (max-width: 800px) {
   .sidebar {
     position: static;
@@ -225,6 +352,15 @@ button:hover {
 
   .search-row {
     display: grid;
+  }
+
+  .item {
+    display: grid;
+  }
+
+  .item-actions {
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
   }
 
   .popup-box {
