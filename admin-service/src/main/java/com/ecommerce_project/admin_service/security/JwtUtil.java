@@ -11,6 +11,10 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+
+// This class provides utility methods for working with JWT tokens, such as extracting the username and role from the token, and validating the token's expiration. It uses the secret key defined in the application properties to parse and validate the JWT tokens received in requests.
+
+
 @Component
 public class JwtUtil {
 

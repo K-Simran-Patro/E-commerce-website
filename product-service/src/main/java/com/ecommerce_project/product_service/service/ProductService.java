@@ -7,6 +7,8 @@ import com.ecommerce_project.product_service.entity.Product;
 import com.ecommerce_project.product_service.exception.ResourceNotFoundException;
 import com.ecommerce_project.product_service.repository.CategoryRepository;
 import com.ecommerce_project.product_service.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,9 @@ import java.util.List;
 
 @Service
 public class ProductService {
+
+    // Logger for this class
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -25,23 +30,17 @@ public class ProductService {
     // ===================== CREATE =====================
     public ProductResponseDTO createProduct(ProductRequestDTO request, String username) {
 
-        // Check name is not empty
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new RuntimeException("Product name cannot be empty");
-        }
-
-        // Check categoryId is provided
-        if (request.getCategoryId() == null) {
-            throw new RuntimeException("Category id cannot be empty");
-        }
+        logger.info("Creating product with name: {} by user: {}", request.getName(), username);
 
         // Check if category exists
         if (!categoryRepository.existsById(request.getCategoryId())) {
+            logger.error("Category not found with id: {}", request.getCategoryId());
             throw new ResourceNotFoundException("Category not found with id: " + request.getCategoryId());
         }
 
         // Check if product name already exists in same category
         if (productRepository.existsByNameAndCategoryCategoryId(request.getName(), request.getCategoryId())) {
+            logger.warn("Product already exists in category id: {} with name: {}", request.getCategoryId(), request.getName());
             throw new RuntimeException("Product already exists in this category: " + request.getName());
         }
 
@@ -58,11 +57,14 @@ public class ProductService {
         product.setModifiedBy(username);
 
         Product savedProduct = productRepository.save(product);
+        logger.info("Product created successfully with id: {}", savedProduct.getProductId());
         return mapToResponseDTO(savedProduct);
     }
 
     // ===================== GET ALL =====================
     public List<ProductResponseDTO> getAllProducts() {
+
+        logger.info("Fetching all products");
 
         List<Product> products = productRepository.findAll();
         List<ProductResponseDTO> responseDTOs = new ArrayList<>();
@@ -71,13 +73,17 @@ public class ProductService {
             responseDTOs.add(mapToResponseDTO(product));
         }
 
+        logger.info("Total products fetched: {}", responseDTOs.size());
         return responseDTOs;
     }
 
     // ===================== GET BY ID =====================
     public ProductResponseDTO getProductById(Long id) {
 
+        logger.info("Fetching product with id: {}", id);
+
         if (!productRepository.existsById(id)) {
+            logger.error("Product not found with id: {}", id);
             throw new ResourceNotFoundException("Product not found with id: " + id);
         }
 
@@ -88,23 +94,23 @@ public class ProductService {
     // ===================== UPDATE =====================
     public ProductResponseDTO updateProduct(ProductRequestDTO request, String username) {
 
+        logger.info("Updating product with id: {} by user: {}", request.getProductId(), username);
+
         // Check productId is provided
         if (request.getProductId() == null) {
+            logger.warn("Product id is missing in update request");
             throw new RuntimeException("Product id cannot be empty");
-        }
-
-        // Check name is not empty
-        if (request.getName() == null || request.getName().trim().isEmpty()) {
-            throw new RuntimeException("Product name cannot be empty");
         }
 
         // Check if product exists
         if (!productRepository.existsById(request.getProductId())) {
+            logger.error("Product not found with id: {}", request.getProductId());
             throw new ResourceNotFoundException("Product not found with id: " + request.getProductId());
         }
 
         // Check if product name already exists in same category for another product
         if (productRepository.existsByNameAndCategoryCategoryIdAndProductIdNot(request.getName(), request.getCategoryId(), request.getProductId())) {
+            logger.warn("Product name already exists in category: {}", request.getName());
             throw new RuntimeException("Product already exists in this category: " + request.getName());
         }
 
@@ -118,6 +124,7 @@ public class ProductService {
         // Update category if categoryId is provided
         if (request.getCategoryId() != null) {
             if (!categoryRepository.existsById(request.getCategoryId())) {
+                logger.error("Category not found with id: {}", request.getCategoryId());
                 throw new ResourceNotFoundException("Category not found with id: " + request.getCategoryId());
             }
             Category category = categoryRepository.findById(request.getCategoryId()).get();
@@ -125,19 +132,24 @@ public class ProductService {
         }
 
         Product updatedProduct = productRepository.save(product);
+        logger.info("Product updated successfully with id: {}", updatedProduct.getProductId());
         return mapToResponseDTO(updatedProduct);
     }
 
     // ===================== DELETE =====================
     public String deleteProduct(ProductRequestDTO request, String username) {
 
+        logger.info("Deleting product with id: {} by user: {}", request.getProductId(), username);
+
         // Check productId is provided
         if (request.getProductId() == null) {
+            logger.warn("Product id is missing in delete request");
             throw new RuntimeException("Product id cannot be empty");
         }
 
         // Check if product exists
         if (!productRepository.existsById(request.getProductId())) {
+            logger.error("Product not found with id: {}", request.getProductId());
             throw new ResourceNotFoundException("Product not found with id: " + request.getProductId());
         }
 
@@ -147,6 +159,7 @@ public class ProductService {
         product.setModifiedBy(username);
         productRepository.save(product);
 
+        logger.info("Product soft deleted successfully with id: {}", request.getProductId());
         return "Product deleted successfully";
     }
 

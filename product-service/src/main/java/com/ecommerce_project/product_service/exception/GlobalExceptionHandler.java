@@ -10,15 +10,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice //Marks this class as a global exception handler that can catch exceptions thrown by any controller and return custom error responses
 public class GlobalExceptionHandler {
 
     // Handles Bean Validation errors — when @Valid fails
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ExceptionHandler(MethodArgumentNotValidException.class) //Tells Spring that this method should be called when a MethodArgumentNotValidException is thrown (which happens when the validation of a request body fails)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
 
         // Get the first validation error message
-        String errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage();
+        String errorMessage = ex.getBindingResult().getFieldErrors().get(0).getDefaultMessage(); //Extracts the first validation error message from the exception object, which contains details about all the validation errors that occurred. This assumes we only want to return one error message to the client.
 
         Map<String, Object> error = new HashMap<>();
         error.put("timestamp", LocalDateTime.now());
