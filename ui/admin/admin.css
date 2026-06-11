@@ -529,3 +529,10 @@ button.loading {
     transform: rotate(360deg);
   }
 }
+.hidden {
+  display: none !important;
+}
+
+.spinner.hidden {
+  display: none !important;
+}
