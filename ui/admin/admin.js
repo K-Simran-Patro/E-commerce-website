@@ -42,6 +42,43 @@ function showToast(message, type) {
   }, 1800);
 }
 
+function setButtonLoading(buttonId, isLoading) {
+  var button = document.getElementById(buttonId);
+
+  if (!button) return;
+
+  var text = button.querySelector(".btn-text");
+  var spinner = button.querySelector(".spinner");
+
+  if (isLoading) {
+    button.disabled = true;
+    button.classList.add("loading");
+
+    if (text) text.classList.add("hidden");
+    if (spinner) spinner.classList.remove("hidden");
+  } else {
+    button.disabled = false;
+    button.classList.remove("loading");
+
+    if (text) text.classList.remove("hidden");
+    if (spinner) spinner.classList.add("hidden");
+  }
+}
+
+function showToast(message, type) {
+  var toast = document.getElementById("toast");
+  var toastBox = document.getElementById("toastBox");
+
+  toastBox.className = "toast-box " + (type || "success");
+  toastBox.innerText = message;
+
+  toast.classList.remove("hidden");
+
+  setTimeout(function () {
+    toast.classList.add("hidden");
+  }, 1800);
+}
+
 function toggleMenu(id) {
   document.getElementById(id).classList.toggle("hidden");
 }
@@ -237,9 +274,9 @@ function showCategories(data) {
       <thead>
         <tr>
           <th>ID</th>
+          <th>Parent ID</th>
           <th>Category Name</th>
           <th>Slug</th>
-          <th>Parent ID</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -250,9 +287,9 @@ function showCategories(data) {
     table += `
       <tr>
         <td>${c.categoryId || "-"}</td>
+        <td>${c.parentId || "-"}</td>
         <td>${c.name || "-"}</td>
         <td>${c.slug || "-"}</td>
-        <td>${c.parentId || "-"}</td>
         <td>
           <div class="action-buttons">
             <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>
@@ -323,7 +360,7 @@ async function deleteCategory(id) {
 
   try {
     await apiSend("/admin/categories", "DELETE", { categoryId: id });
-    loadCategories();
+    await loadCategories();
     showToast(category.name + " category deleted successfully.", "success");
   } catch (error) {
     showToast(error.message || category.name + " category was not deleted.", "error");
@@ -430,8 +467,8 @@ function showProducts(data) {
       <thead>
         <tr>
           <th>ID</th>
-          <th>Product Name</th>
           <th>Category ID</th>
+          <th>Product Name</th>
           <th>Brand</th>
           <th>Image Key</th>
           <th>Active</th>
@@ -445,8 +482,8 @@ function showProducts(data) {
     table += `
       <tr>
         <td>${p.productId || "-"}</td>
-        <td>${p.name || "-"}</td>
         <td>${p.categoryId || "-"}</td>
+        <td>${p.name || "-"}</td>
         <td>${p.brandName || "-"}</td>
         <td>${p.mainImageKey || "-"}</td>
         <td>${p.isActive === true ? "Yes" : "No"}</td>
@@ -515,7 +552,7 @@ async function deleteProduct(id) {
 
   try {
     await apiSend("/admin/products", "DELETE", { productId: id });
-    loadProducts();
+    await loadProducts();
     showToast(product.name + " product deleted successfully.", "success");
   } catch (error) {
     showToast(error.message || product.name + " product was not deleted.", "error");
@@ -726,9 +763,12 @@ function closePopup() {
 }
 
 document.getElementById("popupForm").addEventListener("submit", async function (e) {
+document.getElementById("popupForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
   if (!checkAuth()) return;
+
+  setButtonLoading("saveUpdateBtn", true);
 
   try {
     if (editType === "category") {
@@ -743,7 +783,9 @@ document.getElementById("popupForm").addEventListener("submit", async function (
       };
 
       await apiSend("/admin/categories", "PUT", data);
-      loadCategories();
+      await loadCategories();
+
+      closePopup();
       showToast(name + " category updated successfully.", "success");
     }
 
@@ -759,7 +801,9 @@ document.getElementById("popupForm").addEventListener("submit", async function (
       };
 
       await apiSend("/admin/products", "PUT", productDataToUpdate);
-      loadProducts();
+      await loadProducts();
+
+      closePopup();
       showToast(productName + " product updated successfully.", "success");
     }
 
@@ -769,6 +813,7 @@ document.getElementById("popupForm").addEventListener("submit", async function (
 
       if (isEmpty(price) || Number(price) <= 0) {
         showToast("Price is required and must be greater than 0.", "error");
+        setButtonLoading("saveUpdateBtn", false);
         return;
       }
 
@@ -782,11 +827,15 @@ document.getElementById("popupForm").addEventListener("submit", async function (
       };
 
       await apiSend("/admin/variants", "PUT", variantDataToUpdate);
+
+      closePopup();
       showToast(sku + " variant updated successfully.", "success");
     }
 
-    closePopup();
   } catch (error) {
     showToast(error.message || editLabel + " update failed.", "error");
   }
+
+  setButtonLoading("saveUpdateBtn", false);
+});
 });
