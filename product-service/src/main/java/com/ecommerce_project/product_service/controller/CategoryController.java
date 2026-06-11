@@ -11,17 +11,18 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController
-@RequestMapping("/api/categories")
+@RestController //Marks this class as a REST API controller that can handle HTTP requests and return JSON responses
+@RequestMapping("/api/categories") //Base URL for all endpoints in this controller will start with /api/categories
 public class CategoryController {
 
-    @Autowired
+    @Autowired //Tells Spring to automatically inject an instance of CategoryService into this controller, so we can use it to perform business logic related to categories
     private CategoryService categoryService;
 
     // Create new category
     @PostMapping
-    public CategoryResponseDTO createCategory(
-            @Valid@RequestBody CategoryRequestDTO request,
+    public CategoryResponseDTO createCategory //Handles HTTP POST requests to /api/categories. It takes a CategoryRequestDTO object from the request body (which contains the data needed to create a category) and a username from the request header (to track who is creating the category). It returns a CategoryResponseDTO object, which contains the details of the newly created category.
+    ( 
+            @Valid@RequestBody CategoryRequestDTO request, //@requestbody coverts JSON into java object and @valid makes sure the data in the request body meets the validation rules defined in CategoryRequestDTO (like not null, size limits, etc.)
             @RequestHeader("X-User-Name") String username) {
         return categoryService.createCategory(request, username);
     }
@@ -34,7 +35,8 @@ public class CategoryController {
 
     // Get category by id
     @GetMapping("/{id}")
-    public CategoryResponseDTO getCategoryById(@PathVariable Long id) {
+    public CategoryResponseDTO getCategoryById(@PathVariable Long id) //Handles HTTP GET requests to /api/categories/{id}. It takes the category ID from the URL path (using @PathVariable) and returns a CategoryResponseDTO object with the details of that category.
+    {
         return categoryService.getCategoryById(id);
     }
 

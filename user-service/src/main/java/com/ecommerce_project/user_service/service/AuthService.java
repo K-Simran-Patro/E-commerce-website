@@ -17,16 +17,16 @@ import java.time.OffsetDateTime;
 @Service
 public class AuthService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class); //Creates a logger instance for this class, which can be used to log messages for debugging and monitoring purposes
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepository; //Repository interface for performing CRUD operations on the User entity. It provides methods to find users by email and phone, as well as standard JPA repository methods for saving and retrieving users from the database.
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; //Used to hash passwords before storing them in the database and to verify passwords during login. The PasswordEncoder bean will be configured elsewhere in the application (e.g., using BCryptPasswordEncoder) to provide secure password hashing.
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JwtUtil jwtUtil; //Utility class for generating JSON Web Tokens (JWTs) for authenticated users. It will be used in the login method to create a token that can be returned to the client and used for subsequent authenticated requests.
 
     public RegisterResponse register(RegisterRequest request) {
 
@@ -64,22 +64,27 @@ public class AuthService {
 
         User user = userRepository.findByEmail(request.getEmail());
 
+
+        // Check if user exists
         if (user == null) {
             logger.warn("User not found: {}", request.getEmail());
             throw new RuntimeException("User not found");
         }
 
+        // Verify password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             logger.warn("Invalid password for: {}", request.getEmail());
             throw new RuntimeException("Invalid password");
         }
 
+
+        // Check if account is active
         if (!user.getIsActive()) {
             logger.warn("Account disabled: {}", request.getEmail());
             throw new RuntimeException("Account is disabled");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());//Generates a JWT token for the authenticated user using the JwtUtil class. The token will include the user's email and role as claims, which can be used for authorization in subsequent requests. This token is then returned to the client in the LoginResponse, allowing the client to include it in the Authorization header of future requests to access protected resources.
 
         logger.info("Login successful for: {}", request.getEmail());
 

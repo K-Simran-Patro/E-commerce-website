@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+
+
+// This controller acts as a proxy for all product-related operations (categories, products, variants) in the Admin Service. It forwards requests to the Product Service while adding the X-User-Name header to identify the logged-in admin making the request. Each endpoint logs the username of the admin performing the action for auditing purposes. The controller handles CRUD operations for categories, products, and product variants by forwarding the appropriate HTTP requests to the Product Service and returning clean responses to the client.
 @RestController
 @RequestMapping("/admin")
 @Tag(name = "Admin Product Management", description = "Manage categories, products and variants")
@@ -34,12 +37,12 @@ public class ProductProxyController {
     @Value("${product.service.url}")
     private String productServiceUrl;
 
-    // ─── Get logged in admin username from token ──────────
+    //  Get logged in admin username from token 
     private String getLoggedInUsername() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 
-    // ─── Build headers with X-User-Name ──────────────────
+    // Build headers with X-User-Name 
     private HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-User-Name", getLoggedInUsername());
@@ -55,17 +58,17 @@ public class ProductProxyController {
     }
 
 
-    // ════════════════════════════════════════════════════
-    //  CATEGORY ENDPOINTS
-    // ════════════════════════════════════════════════════
 
-    @GetMapping("/categories")
-    @Operation(summary = "Get all categories", description = "Returns list of all categories from Product Service")
+    //  CATEGORY ENDPOINTS
+
+
+    @GetMapping("/categories") //Handles HTTP GET requests to /admin/categories. It logs the username of the logged-in admin making the request, constructs the URL for the Product Service's /api/categories endpoint, creates an HttpEntity with the necessary headers (including the X-User-Name), and makes an HTTP GET request to the Product Service to retrieve all categories. The response from the Product Service is then passed to the buildResponse method to create a clean response that is returned to the client.
+    @Operation(summary = "Get all categories", description = "Returns list of all categories from Product Service") //Handles HTTP GET requests to /admin/categories. It logs the username of the logged-in admin making the request, constructs the URL for the Product Service's /api/categories endpoint, creates an HttpEntity with the necessary headers (including the X-User-Name), and makes an HTTP GET request to the Product Service to retrieve all categories. The response from the Product Service is then passed to the buildResponse method to create a clean response that is returned to the client.
     public ResponseEntity<String> getAllCategories() {
-        logger.info("Get all categories requested by: {}", getLoggedInUsername());
-        String url = productServiceUrl + "/api/categories";
-        HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        logger.info("Get all categories requested by: {}", getLoggedInUsername()); //Logs the username of the logged-in admin who is making the request to retrieve all categories. This information is useful for auditing and debugging purposes, as it allows us to track which admin is performing which actions in the system.
+        String url = productServiceUrl + "/api/categories"; //Constructs the URL for the Product Service's /api/categories endpoint by appending the path to the base URL of the Product Service, which is injected from the application properties. This URL will be used to make the HTTP request to retrieve all categories from the Product Service.
+        HttpEntity<Void> entity = new HttpEntity<>(createHeaders()); //Creates an HttpEntity object with the headers that include the X-User-Name of the logged-in admin. This entity is used to make the HTTP request to the Product Service, allowing the Product Service to identify which admin is making the request based on the username provided in the header.
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class); //Makes an HTTP GET request to the Product Service's /api/categories endpoint, including the X-User-Name header with the logged-in admin's username. The response from the Product Service is captured in a ResponseEntity<String> object, which contains the status code and body of the response. This response is then passed to the buildResponse method to create a clean response that is returned to the client.
         return buildResponse(response);
     }
 
@@ -100,9 +103,9 @@ public class ProductProxyController {
     }
 
 
-    // ════════════════════════════════════════════════════
+    
     //  PRODUCT ENDPOINTS
-    // ════════════════════════════════════════════════════
+   
 
     @GetMapping("/products")
     @Operation(summary = "Get all products", description = "Returns list of all products from Product Service")
@@ -145,9 +148,9 @@ public class ProductProxyController {
     }
 
 
-    // ════════════════════════════════════════════════════
+    
     //  PRODUCT VARIANT ENDPOINTS
-    // ════════════════════════════════════════════════════
+  
 
     @GetMapping("/variants")
     @Operation(summary = "Get all variants", description = "Returns list of all product variants from Product Service")
