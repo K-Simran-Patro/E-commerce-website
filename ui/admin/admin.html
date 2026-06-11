@@ -12,7 +12,6 @@
   <aside class="sidebar">
     <h2>Admin Panel</h2>
 
-    <!-- PRODUCT SERVICE PARENT -->
     <button class="main-menu-btn" onclick="toggleMenu('productServiceMenu')">
       Product Services ▾
     </button>
@@ -229,8 +228,8 @@
 
         <div class="popup-buttons">
           <button id="saveUpdateBtn" type="submit">
-          <span class="btn-text">Save Update</span>
-          <span class="spinner hidden"></span>
+            <span class="btn-text">Save Update</span>
+            <span class="spinner hidden"></span>
           </button>
 
           <button type="button" class="cancel-btn" onclick="closePopup()">Cancel</button>
@@ -240,17 +239,17 @@
   </div>
 
   <!-- DELETE CONFIRM POPUP -->
-<div id="confirmPopup" class="confirm-popup hidden">
-  <div class="confirm-box">
-    <h3 id="confirmTitle">Confirm Delete</h3>
-    <p id="confirmMessage">Are you sure?</p>
+  <div id="confirmPopup" class="confirm-popup hidden">
+    <div class="confirm-box">
+      <h3>Confirm Delete</h3>
+      <p id="confirmMessage">Are you sure?</p>
 
-    <div class="confirm-buttons">
-      <button id="confirmYesBtn" class="delete-btn">Yes, Delete</button>
-      <button id="confirmNoBtn" class="cancel-btn">Cancel</button>
+      <div class="confirm-buttons">
+        <button id="confirmYesBtn" class="delete-btn">Yes, Delete</button>
+        <button id="confirmNoBtn" class="cancel-btn">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
   <!-- CENTER SUCCESS / ERROR POPUP -->
   <div id="toast" class="toast hidden">

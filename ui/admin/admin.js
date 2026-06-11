@@ -7,12 +7,6 @@ var editLabel = "";
 
 // ── Admin service URL ────────────────────────────────────────
 function apiUrl() {
-  var input = document.getElementById("apiUrl");
-
-  if (input && input.value.trim()) {
-    return input.value.trim();
-  }
-
   return ADMIN_SERVICE;
 }
 
@@ -42,6 +36,28 @@ function showToast(message, type) {
   }, 1800);
 }
 
+function showConfirm(message) {
+  return new Promise(function (resolve) {
+    var popup = document.getElementById("confirmPopup");
+    var messageBox = document.getElementById("confirmMessage");
+    var yesBtn = document.getElementById("confirmYesBtn");
+    var noBtn = document.getElementById("confirmNoBtn");
+
+    messageBox.innerText = message;
+    popup.classList.remove("hidden");
+
+    yesBtn.onclick = function () {
+      popup.classList.add("hidden");
+      resolve(true);
+    };
+
+    noBtn.onclick = function () {
+      popup.classList.add("hidden");
+      resolve(false);
+    };
+  });
+}
+
 function setButtonLoading(buttonId, isLoading) {
   var button = document.getElementById(buttonId);
 
@@ -63,20 +79,6 @@ function setButtonLoading(buttonId, isLoading) {
     if (text) text.classList.remove("hidden");
     if (spinner) spinner.classList.add("hidden");
   }
-}
-
-function showToast(message, type) {
-  var toast = document.getElementById("toast");
-  var toastBox = document.getElementById("toastBox");
-
-  toastBox.className = "toast-box " + (type || "success");
-  toastBox.innerText = message;
-
-  toast.classList.remove("hidden");
-
-  setTimeout(function () {
-    toast.classList.add("hidden");
-  }, 1800);
 }
 
 function toggleMenu(id) {
@@ -97,27 +99,6 @@ function showPage(id) {
 
 function isEmpty(value) {
   return value === null || value === undefined || String(value).trim() === "";
-}
-
-function setButtonLoading(buttonId, isLoading) {
-  var button = document.getElementById(buttonId);
-
-  if (!button) return;
-
-  var text = button.querySelector(".btn-text");
-  var spinner = button.querySelector(".spinner");
-
-  if (isLoading) {
-    button.disabled = true;
-    button.classList.add("loading");
-    if (spinner) spinner.classList.remove("hidden");
-    if (text) text.classList.add("hidden");
-  } else {
-    button.disabled = false;
-    button.classList.remove("loading");
-    if (spinner) spinner.classList.add("hidden");
-    if (text) text.classList.remove("hidden");
-  }
 }
 
 // ── API helpers ──────────────────────────────────────────────
@@ -168,7 +149,7 @@ async function apiSend(path, method, data) {
 
 function checkAuth() {
   if (!localStorage.getItem("authToken")) {
-    showMessage("Token missing. Please login again.");
+    showToast("Token missing. Please login again.", "error");
     window.location.href = "/auth/login.html";
     return false;
   }
@@ -178,11 +159,6 @@ function checkAuth() {
 
 /* ===================================================
    CATEGORIES
-   API paths unchanged:
-   GET    /admin/categories
-   POST   /admin/categories
-   PUT    /admin/categories
-   DELETE /admin/categories
    =================================================== */
 
 var categoryData = [];
@@ -215,7 +191,7 @@ document.getElementById("categoryForm").addEventListener("submit", async functio
   try {
     await apiSend("/admin/categories", "POST", data);
     this.reset();
-    loadCategories();
+    await loadCategories();
     showToast(name + " category created successfully.", "success");
   } catch (error) {
     showToast(error.message || name + " category was not created.", "error");
@@ -235,9 +211,9 @@ async function loadCategories() {
     showCategories(categoryData);
   } catch (error) {
     showToast(error.message, "error");
+  } finally {
+    setButtonLoading("categoryLoadBtn", false);
   }
-
-  setButtonLoading("categoryLoadBtn", false);
 }
 
 function searchCategory() {
@@ -292,12 +268,8 @@ function showCategories(data) {
         <td>${c.slug || "-"}</td>
         <td>
           <div class="action-buttons">
-            <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>
-              Update
-            </button>
-            <button class="delete-btn" onclick="deleteCategory(${c.categoryId})">
-              Delete
-            </button>
+            <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>Update</button>
+            <button class="delete-btn" onclick="deleteCategory(${c.categoryId})">Delete</button>
           </div>
         </td>
       </tr>
@@ -356,7 +328,9 @@ async function deleteCategory(id) {
     return;
   }
 
-  if (!confirm("Delete " + category.name + " category?")) return;
+  var confirmed = await showConfirm("Delete " + category.name + " category?");
+
+  if (!confirmed) return;
 
   try {
     await apiSend("/admin/categories", "DELETE", { categoryId: id });
@@ -369,11 +343,6 @@ async function deleteCategory(id) {
 
 /* ===================================================
    PRODUCTS
-   API paths unchanged:
-   GET    /admin/products
-   POST   /admin/products
-   PUT    /admin/products
-   DELETE /admin/products
    =================================================== */
 
 var productData = [];
@@ -408,7 +377,7 @@ document.getElementById("productForm").addEventListener("submit", async function
   try {
     await apiSend("/admin/products", "POST", data);
     this.reset();
-    loadProducts();
+    await loadProducts();
     showToast(name + " product created successfully.", "success");
   } catch (error) {
     showToast(error.message || name + " product was not created.", "error");
@@ -428,9 +397,9 @@ async function loadProducts() {
     showProducts(productData);
   } catch (error) {
     showToast(error.message, "error");
+  } finally {
+    setButtonLoading("productLoadBtn", false);
   }
-
-  setButtonLoading("productLoadBtn", false);
 }
 
 function searchProduct() {
@@ -489,12 +458,8 @@ function showProducts(data) {
         <td>${p.isActive === true ? "Yes" : "No"}</td>
         <td>
           <div class="action-buttons">
-            <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>
-              Update
-            </button>
-            <button class="delete-btn" onclick="deleteProduct(${p.productId})">
-              Delete
-            </button>
+            <button class="update-btn" onclick='openProductPopup(${JSON.stringify(p)})'>Update</button>
+            <button class="delete-btn" onclick="deleteProduct(${p.productId})">Delete</button>
           </div>
         </td>
       </tr>
@@ -548,7 +513,9 @@ async function deleteProduct(id) {
     return;
   }
 
-  if (!confirm("Delete " + product.name + " product?")) return;
+  var confirmed = await showConfirm("Delete " + product.name + " product?");
+
+  if (!confirmed) return;
 
   try {
     await apiSend("/admin/products", "DELETE", { productId: id });
@@ -561,11 +528,6 @@ async function deleteProduct(id) {
 
 /* ===================================================
    VARIANTS
-   API paths unchanged:
-   GET    /admin/variants
-   POST   /admin/variants
-   PUT    /admin/variants
-   DELETE /admin/variants
    =================================================== */
 
 var variantData = [];
@@ -635,9 +597,9 @@ async function searchVariantsByProduct() {
     showVariants(filtered);
   } catch (error) {
     showToast(error.message, "error");
+  } finally {
+    setButtonLoading("variantLoadBtn", false);
   }
-
-  setButtonLoading("variantLoadBtn", false);
 }
 
 function showVariants(data) {
@@ -678,12 +640,8 @@ function showVariants(data) {
         <td>${v.isActive === true ? "Yes" : "No"}</td>
         <td>
           <div class="action-buttons">
-            <button class="update-btn" onclick='openVariantPopup(${JSON.stringify(v)})'>
-              Update
-            </button>
-            <button class="delete-btn" onclick="deleteVariant(${v.variantId})">
-              Delete
-            </button>
+            <button class="update-btn" onclick='openVariantPopup(${JSON.stringify(v)})'>Update</button>
+            <button class="delete-btn" onclick="deleteVariant(${v.variantId})">Delete</button>
           </div>
         </td>
       </tr>
@@ -740,7 +698,9 @@ async function deleteVariant(id) {
     return;
   }
 
-  if (!confirm("Delete " + variant.sku + " variant?")) return;
+  var confirmed = await showConfirm("Delete " + variant.sku + " variant?");
+
+  if (!confirmed) return;
 
   try {
     await apiSend("/admin/variants", "DELETE", { variantId: id });
@@ -752,17 +712,12 @@ async function deleteVariant(id) {
 
 /* ===================================================
    POPUP UPDATE
-   API paths unchanged:
-   PUT /admin/categories
-   PUT /admin/products
-   PUT /admin/variants
    =================================================== */
 
 function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-document.getElementById("popupForm").addEventListener("submit", async function (e) {
 document.getElementById("popupForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -813,7 +768,6 @@ document.getElementById("popupForm").addEventListener("submit", async function (
 
       if (isEmpty(price) || Number(price) <= 0) {
         showToast("Price is required and must be greater than 0.", "error");
-        setButtonLoading("saveUpdateBtn", false);
         return;
       }
 
@@ -834,8 +788,7 @@ document.getElementById("popupForm").addEventListener("submit", async function (
 
   } catch (error) {
     showToast(error.message || editLabel + " update failed.", "error");
+  } finally {
+    setButtonLoading("saveUpdateBtn", false);
   }
-
-  setButtonLoading("saveUpdateBtn", false);
-});
 });
