@@ -341,6 +341,55 @@ async function deleteCategory(id) {
   }
 }
 
+/*Excel file uploader*/
+document.getElementById("excelUploadForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  if (!checkAuth()) return;
+
+  var fileInput = document.getElementById("productExcelFile");
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    showToast("Please select an Excel file.", "error");
+    return;
+  }
+
+  var formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  setButtonLoading("excelUploadBtn", true);
+
+  try {
+    var response = await fetch(ADMIN_SERVICE + "/admin/upload-product-excel", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("authToken"),
+        "X-User-Name": localStorage.getItem("userEmail")
+      },
+      body: formData
+    });
+
+    var text = await response.text();
+
+    if (!response.ok) {
+      showToast(text || "Excel upload failed.", "error");
+      return;
+    }
+
+    showToast(text || "Excel uploaded successfully.", "success");
+
+    fileInput.value = "";
+
+    await loadCategories();
+    await loadProducts();
+
+  } catch (error) {
+    showToast("Excel upload failed: " + error.message, "error");
+  } finally {
+    setButtonLoading("excelUploadBtn", false);
+  }
+});
+
 /* ===================================================
    PRODUCTS
    =================================================== */
