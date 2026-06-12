@@ -752,11 +752,18 @@ async function deleteVariant(id) {
   if (!confirmed) return;
 
   try {
-    await apiSend("/admin/variants", "DELETE", { variantId: id });
-    showToast(variant.sku + " variant deleted successfully.", "success");
-  } catch (error) {
-    showToast(error.message || variant.sku + " variant was not deleted.", "error");
+  await apiSend("/admin/variants", "DELETE", { variantId: id });
+
+  var productId = document.getElementById("variantSearchProductId").value;
+
+  if (productId) {
+    await searchVariantsByProduct();
   }
+
+  showToast(variant.sku + " variant deleted successfully.", "success");
+} catch (error) {
+  showToast(error.message || variant.sku + " variant was not deleted.", "error");
+}
 }
 
 /* ===================================================
