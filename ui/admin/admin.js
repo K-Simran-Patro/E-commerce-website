@@ -360,7 +360,7 @@ document.getElementById("excelUploadForm").addEventListener("submit", async func
   setButtonLoading("excelUploadBtn", true);
 
   try {
-    var response = await fetch(ADMIN_SERVICE + "/admin/upload-product-excel", {
+    var response = await fetch(ADMIN_SERVICE + "/admin/bulk-upload/products", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + localStorage.getItem("authToken"),
@@ -369,14 +369,14 @@ document.getElementById("excelUploadForm").addEventListener("submit", async func
       body: formData
     });
 
-    var text = await response.text();
+    var result = await response.json();
 
     if (!response.ok) {
-      showToast(text || "Excel upload failed.", "error");
-      return;
+        showToast(result.message || "Excel upload failed.", "error");
+        return;
     }
 
-    showToast(text || "Excel uploaded successfully.", "success");
+    showToast(result.message || "Excel uploaded successfully.", "success");
 
     fileInput.value = "";
 
