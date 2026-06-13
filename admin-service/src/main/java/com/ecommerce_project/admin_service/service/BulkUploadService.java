@@ -1,19 +1,30 @@
 package com.ecommerce_project.admin_service.service;
 
-import com.ecommerce_project.admin_service.dto.bulk.BulkUploadResponseDTO;
-import com.ecommerce_project.admin_service.dto.bulk.BulkUploadRowDTO;
-import org.apache.poi.ss.usermodel.*;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.ecommerce_project.admin_service.dto.bulk.BulkUploadResponseDTO;
+import com.ecommerce_project.admin_service.dto.bulk.BulkUploadRowDTO;
 
 @Service
 public class BulkUploadService {
@@ -22,6 +33,26 @@ public class BulkUploadService {
 
     @Value("${product.service.url}")
     private String productServiceUrl;
+
+    /*
+      IMPORTANT:
+      These paths should match the APIs available in your Product Service.
+
+      If your Product Service Swagger shows:
+      /admin/categories
+      /admin/products
+      /admin/variants
+      then keep these as they are.
+
+      If your Product Service Swagger shows:
+      /api/categories
+      /api/products
+      /api/variants
+      then change these three constants.
+    */
+    private static final String CATEGORY_API = "/admin/categories";
+    private static final String PRODUCT_API = "/admin/products";
+    private static final String VARIANT_API = "/admin/variants";
 
     public BulkUploadService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -36,18 +67,18 @@ public class BulkUploadService {
             Sheet sheet = workbook.getSheetAt(0);
 
             /*
-             Expected Excel columns:
+              Expected Excel columns:
 
-             A - Parent Category Name
-             B - Category Name
-             C - Product Name
-             D - Brand Name
-             E - Description
-             F - Main Image Key
-             G - SKU
-             H - Color
-             I - Size
-             J - Price
+              A - Parent Category Name
+              B - Category Name
+              C - Product Name
+              D - Brand Name
+              E - Description
+              F - Main Image Key
+              G - SKU
+              H - Color
+              I - Size
+              J - Price
             */
 
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -66,7 +97,12 @@ public class BulkUploadService {
                     continue;
                 }
 
-                Long finalCategoryId = getFinalCategoryId(rowDTO, token, userName, response);
+                Long finalCategoryId = getFinalCategoryId(
+                        rowDTO,
+                        token,
+                        userName,
+                        response
+                );
 
                 ProductResult productResult = getOrCreateProduct(
                         finalCategoryId,
@@ -165,9 +201,10 @@ public class BulkUploadService {
         Long finalCategoryId;
 
         /*
-         If parent category is present:
-         create/reuse parent category first,
-         then create/reuse child category under parent.
+          If parent category is present:
+          1. create/reuse parent category
+          2. create/reuse child category under parent
+          3. use child category ID for product
         */
         if (row.getParentCategoryName() != null && !row.getParentCategoryName().isBlank()) {
 
@@ -288,11 +325,11 @@ public class BulkUploadService {
 
         for (Map<String, Object> category : categories) {
 
-            String existingSlug = String.valueOf(category.get("slug"));
+            String existingSlug = getStringValue(category, "slug");
 
             if (existingSlug.equalsIgnoreCase(slug)) {
 
-                Long id = Long.valueOf(String.valueOf(category.get("categoryId")));
+                Long id = getLongValue(category, "categoryId");
 
                 return new CategoryResult(id, false);
             }
@@ -307,16 +344,24 @@ public class BulkUploadService {
         HttpEntity<Map<String, Object>> request =
                 new HttpEntity<>(body, getHeaders(token, userName));
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                productServiceUrl + "/admin/categories",
+        ResponseEntity<Map> apiResponse = restTemplate.exchange(
+                productServiceUrl + CATEGORY_API,
                 HttpMethod.POST,
                 request,
                 Map.class
         );
 
-        Object id = response.getBody().get("categoryId");
+        Object responseBody = apiResponse.getBody();
 
-        return new CategoryResult(Long.valueOf(id.toString()), true);
+        if (responseBody == null) {
+            throw new RuntimeException("Category create API returned empty response.");
+        }
+
+        Map<String, Object> bodyMap = apiResponse.getBody();
+
+        Long id = getLongValue(bodyMap, "categoryId");
+
+        return new CategoryResult(id, true);
     }
 
     private List<Map<String, Object>> getAllCategories(String token, String userName) {
@@ -324,14 +369,18 @@ public class BulkUploadService {
         HttpEntity<Void> request =
                 new HttpEntity<>(getHeaders(token, userName));
 
-        ResponseEntity<List> response = restTemplate.exchange(
-                productServiceUrl + "/admin/categories",
+        ResponseEntity<Map[]> response = restTemplate.exchange(
+                productServiceUrl + CATEGORY_API,
                 HttpMethod.GET,
                 request,
-                List.class
+                Map[].class
         );
 
-        return response.getBody();
+        if (response.getBody() == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.asList(response.getBody());
     }
 
     /* ================= PRODUCT ================= */
@@ -350,17 +399,18 @@ public class BulkUploadService {
 
         for (Map<String, Object> product : products) {
 
-            String existingName = String.valueOf(product.get("name"));
-            Long existingCategoryId = Long.valueOf(String.valueOf(product.get("categoryId")));
+            String existingName = getStringValue(product, "name");
+            Long existingCategoryId = getProductCategoryId(product);
 
             /*
-             Product can have same name under different category.
-             But same product name under same final category should be reused.
+              Product can have same name under different category.
+              But same product name under same final category should be reused.
             */
             if (existingName.equalsIgnoreCase(productName)
+                    && existingCategoryId != null
                     && existingCategoryId.equals(categoryId)) {
 
-                Long id = Long.valueOf(String.valueOf(product.get("productId")));
+                Long id = getLongValue(product, "productId");
 
                 return new ProductResult(id, false);
             }
@@ -378,16 +428,22 @@ public class BulkUploadService {
         HttpEntity<Map<String, Object>> request =
                 new HttpEntity<>(body, getHeaders(token, userName));
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                productServiceUrl + "/admin/products",
+        ResponseEntity<Map> apiResponse = restTemplate.exchange(
+                productServiceUrl + PRODUCT_API,
                 HttpMethod.POST,
                 request,
                 Map.class
         );
 
-        Object id = response.getBody().get("productId");
+        if (apiResponse.getBody() == null) {
+            throw new RuntimeException("Product create API returned empty response.");
+        }
 
-        return new ProductResult(Long.valueOf(id.toString()), true);
+        Map<String, Object> bodyMap = apiResponse.getBody();
+
+        Long id = getLongValue(bodyMap, "productId");
+
+        return new ProductResult(id, true);
     }
 
     private List<Map<String, Object>> getAllProducts(String token, String userName) {
@@ -395,14 +451,18 @@ public class BulkUploadService {
         HttpEntity<Void> request =
                 new HttpEntity<>(getHeaders(token, userName));
 
-        ResponseEntity<List> response = restTemplate.exchange(
-                productServiceUrl + "/admin/products",
+        ResponseEntity<Map[]> response = restTemplate.exchange(
+                productServiceUrl + PRODUCT_API,
                 HttpMethod.GET,
                 request,
-                List.class
+                Map[].class
         );
 
-        return response.getBody();
+        if (response.getBody() == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.asList(response.getBody());
     }
 
     /* ================= VARIANT ================= */
@@ -421,7 +481,7 @@ public class BulkUploadService {
 
         for (Map<String, Object> variant : variants) {
 
-            String existingSku = String.valueOf(variant.get("sku"));
+            String existingSku = getStringValue(variant, "sku");
 
             if (existingSku.equalsIgnoreCase(sku)) {
                 return false;
@@ -441,7 +501,7 @@ public class BulkUploadService {
                 new HttpEntity<>(body, getHeaders(token, userName));
 
         restTemplate.exchange(
-                productServiceUrl + "/admin/variants",
+                productServiceUrl + VARIANT_API,
                 HttpMethod.POST,
                 request,
                 String.class
@@ -455,14 +515,85 @@ public class BulkUploadService {
         HttpEntity<Void> request =
                 new HttpEntity<>(getHeaders(token, userName));
 
-        ResponseEntity<List> response = restTemplate.exchange(
-                productServiceUrl + "/admin/variants",
+        ResponseEntity<Map[]> response = restTemplate.exchange(
+                productServiceUrl + VARIANT_API,
                 HttpMethod.GET,
                 request,
-                List.class
+                Map[].class
         );
 
-        return response.getBody();
+        if (response.getBody() == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.asList(response.getBody());
+    }
+
+    /* ================= SAFE VALUE HELPERS ================= */
+
+    private String getStringValue(Map<String, Object> map, String key) {
+
+        Object value = map.get(key);
+
+        if (value == null) {
+            return "";
+        }
+
+        return String.valueOf(value);
+    }
+
+    private Long getLongValue(Map<String, Object> map, String key) {
+
+        Object value = map.get(key);
+
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+
+        if (value instanceof Double) {
+            return ((Double) value).longValue();
+        }
+
+        return Long.valueOf(String.valueOf(value));
+    }
+
+    private Long getProductCategoryId(Map<String, Object> product) {
+
+        /*
+          Case 1:
+          Product response directly has categoryId.
+        */
+        if (product.get("categoryId") != null) {
+            return getLongValue(product, "categoryId");
+        }
+
+        /*
+          Case 2:
+          Product response has nested category object like:
+          {
+             "category": {
+                "categoryId": 1
+             }
+          }
+        */
+        Object categoryObject = product.get("category");
+
+        if (categoryObject instanceof Map) {
+
+            Map<String, Object> categoryMap = (Map<String, Object>) categoryObject;
+
+            return getLongValue(categoryMap, "categoryId");
+        }
+
+        return null;
     }
 
     /* ================= SMALL RESULT CLASSES ================= */
