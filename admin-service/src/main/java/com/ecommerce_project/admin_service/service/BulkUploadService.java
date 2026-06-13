@@ -50,9 +50,9 @@ public class BulkUploadService {
       /api/variants
       then change these three constants.
     */
-    private static final String CATEGORY_API = "/admin/categories";
-    private static final String PRODUCT_API = "/admin/products";
-    private static final String VARIANT_API = "/admin/variants";
+    private static final String CATEGORY_API = "/api/categories";
+    private static final String PRODUCT_API = "/api/products";
+    private static final String VARIANT_API = "/api/variants";
 
     public BulkUploadService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
