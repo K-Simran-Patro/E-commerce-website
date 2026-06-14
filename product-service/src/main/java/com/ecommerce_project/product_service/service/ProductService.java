@@ -77,18 +77,21 @@ public class ProductService {
         return responseDTOs;
     }
 
+
     // ===================== GET BY ID =====================
-    public ProductResponseDTO getProductById(Long id) {
+    public ProductResponseDTO getProductById(ProductRequestDTO request) {
 
-        logger.info("Fetching product with id: {}", id);
+        logger.info("Fetching product with id: {}", request.getProductId());
 
-        if (!productRepository.existsById(id)) {
-            logger.error("Product not found with id: {}", id);
-            throw new ResourceNotFoundException("Product not found with id: " + id);
+        if (!productRepository.existsById(request.getProductId())) {
+            logger.error("Product not found with id: {}", request.getProductId());
+            throw new ResourceNotFoundException("Product not found with id: " + request.getProductId());
         }
 
-        Product product = productRepository.findById(id).get();
-        return mapToResponseDTO(product);
+        Product product = productRepository.findById(request.getProductId()).get();
+
+            logger.info("Product fetched successfully with id: {}", request.getProductId());
+                return mapToResponseDTO(product);
     }
 
     // ===================== UPDATE =====================

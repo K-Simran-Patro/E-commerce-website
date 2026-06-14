@@ -24,10 +24,16 @@ public class VariantController {
         return variantService.createVariant(request, username);
     }
 
-    // Get all variants by product
-    @GetMapping("/products/{productId}/variants")
-    public List<VariantResponseDTO> getVariantsByProduct(@PathVariable Long productId) {
-        return variantService.getVariantsByProduct(productId);
+    // Get ALL variants
+    @GetMapping("/variants")
+    public List<VariantResponseDTO> getAllVariants() {
+        return variantService.getAllVariants();
+    }
+
+    // Get variant by ID (id comes from request body)
+    @GetMapping("/variants/single")
+    public VariantResponseDTO getVariantById(@RequestBody VariantRequestDTO request) {
+        return variantService.getVariantById(request);
     }
 
     // Update variant - id comes from request body
