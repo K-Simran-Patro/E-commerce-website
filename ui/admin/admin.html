@@ -91,10 +91,11 @@
 
         <div class="search-row">
           <input id="categorySearchId" type="number" placeholder="Search by ID" />
+
           <button onclick="searchCategory()">Search</button>
 
           <button id="categoryLoadBtn" onclick="loadCategories()">
-            <span class="btn-text">View All Active</span>
+            <span class="btn-text">Show All</span>
             <span class="spinner hidden"></span>
           </button>
         </div>
@@ -141,10 +142,11 @@
 
         <div class="search-row">
           <input id="productSearchId" type="number" placeholder="Search by ID" />
+
           <button onclick="searchProduct()">Search</button>
 
           <button id="productLoadBtn" onclick="loadProducts()">
-            <span class="btn-text">View All Active</span>
+            <span class="btn-text">Show All</span>
             <span class="spinner hidden"></span>
           </button>
         </div>
@@ -187,18 +189,15 @@
 
         <hr />
 
-        <h3>View Variants by Product</h3>
+        <h3>View Product Variants</h3>
 
         <div class="search-row">
-          <input id="variantSearchProductId" type="number" placeholder="Enter Product ID" />
+          <input id="variantSearchId" type="number" placeholder="Search by ID" />
 
-          <button id="variantLoadBtn" onclick="searchVariantsByProduct()">
-            <span class="btn-text">Search</span>
-            <span class="spinner hidden"></span>
-          </button>
+          <button onclick="searchVariant()">Search</button>
 
           <button id="variantAllBtn" onclick="loadAllVariants()">
-            <span class="btn-text">View All Active</span>
+            <span class="btn-text">Show All</span>
             <span class="spinner hidden"></span>
           </button>
         </div>
