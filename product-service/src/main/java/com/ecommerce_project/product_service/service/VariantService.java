@@ -61,28 +61,38 @@ public class VariantService {
         return mapToResponseDTO(savedVariant);
     }
 
-    // ===================== GET BY PRODUCT =====================
-    public List<VariantResponseDTO> getVariantsByProduct(Long productId) {
+    // ===================== GET ALL VARIANTS =====================
+    public List<VariantResponseDTO> getAllVariants() {
 
-        logger.info("Fetching variants for product id: {}", productId);
+        logger.info("Fetching all variants");
 
-        // Check if product exists
-        if (!productRepository.existsById(productId)) {
-            logger.error("Product not found with id: {}", productId);
-            throw new ResourceNotFoundException("Product not found with id: " + productId);
-        }
-
-        Product product = productRepository.findById(productId).get();
-        List<ProductVariant> variants = product.getVariants();
+        List<ProductVariant> variants = variantRepository.findAll();
         List<VariantResponseDTO> responseDTOs = new ArrayList<>();
 
-        for (ProductVariant variant : variants) {
-            responseDTOs.add(mapToResponseDTO(variant));
-        }
+    for (ProductVariant variant : variants) {
+        responseDTOs.add(mapToResponseDTO(variant));
+    }
 
-        logger.info("Total variants fetched for product id {}: {}", productId, responseDTOs.size());
+    logger.info("Total variants fetched: {}", responseDTOs.size());
         return responseDTOs;
     }
+
+    // ===================== GET VARIANT BY ID =====================
+    public VariantResponseDTO getVariantById(VariantRequestDTO request) {
+
+        logger.info("Fetching variant with id: {}", request.getVariantId());
+
+        if (!variantRepository.existsById(request.getVariantId())) {
+            logger.error("Variant not found with id: {}", request.getVariantId());
+            throw new ResourceNotFoundException("Variant not found with id: " + request.getVariantId());
+        }
+
+        ProductVariant variant = variantRepository.findById(request.getVariantId()).get();
+
+        logger.info("Variant fetched successfully with id: {}", request.getVariantId());
+            return mapToResponseDTO(variant);
+    }
+
 
     // ===================== UPDATE =====================
     public VariantResponseDTO updateVariant(VariantRequestDTO request, String username) {

@@ -30,10 +30,10 @@ public class ProductController {
         return productService.getAllProducts();
     }
 
-    // Get product by id
-    @GetMapping("/{id}")
-    public ProductResponseDTO getProductById(@PathVariable Long id) {
-        return productService.getProductById(id);
+    // Get product by ID (id from request body)
+    @GetMapping("/single")
+    public ProductResponseDTO getProductById(@RequestBody ProductRequestDTO request) {
+        return productService.getProductById(request);
     }
 
     // Update product - id comes from request body

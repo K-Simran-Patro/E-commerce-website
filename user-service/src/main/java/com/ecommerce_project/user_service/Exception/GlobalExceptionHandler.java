@@ -1,4 +1,4 @@
-package com.ecommerce_project.user_service.exception;
+package com.ecommerce_project.user_service.Exception;
 
 import java.util.HashMap;
 import java.util.Map;

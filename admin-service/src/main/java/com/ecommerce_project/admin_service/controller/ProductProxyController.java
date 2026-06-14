@@ -1,7 +1,5 @@
 package com.ecommerce_project.admin_service.controller;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 
 
@@ -72,6 +73,17 @@ public class ProductProxyController {
         return buildResponse(response);
     }
 
+    // GET CATEGORY BY ID
+    @GetMapping("/categories/single")
+    @Operation(summary = "Get category by ID", description = "Forwards get category by id request to Product Service")
+    public ResponseEntity<String> getCategoryById(@RequestBody Object requestBody) {
+        logger.info("Get category by id requested by: {}", getLoggedInUsername());
+         String url = productServiceUrl + "/api/categories/single";
+         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
+         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+         return buildResponse(response);
+    }
+
     @PostMapping("/categories")
     @Operation(summary = "Create category", description = "Forwards create category request to Product Service")
     public ResponseEntity<String> createCategory(@RequestBody Object requestBody) {
@@ -117,6 +129,16 @@ public class ProductProxyController {
         return buildResponse(response);
     }
 
+    @GetMapping("/products/single")
+    @Operation(summary = "Get product by ID", description = "Forwards get product by id request to Product Service")
+    public ResponseEntity<String> getProductById(@RequestBody Object requestBody) {
+        logger.info("Get product by id requested by: {}", getLoggedInUsername());
+         String url = productServiceUrl + "/api/products/single";
+         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
+         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+         return buildResponse(response);
+    }
+
     @PostMapping("/products")
     @Operation(summary = "Create product", description = "Forwards create product request to Product Service")
     public ResponseEntity<String> createProduct(@RequestBody Object requestBody) {
@@ -160,6 +182,18 @@ public class ProductProxyController {
         HttpEntity<Void> entity = new HttpEntity<>(createHeaders());
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         return buildResponse(response);
+    }
+
+
+    // GET VARIANT BY ID
+    @GetMapping("/variants/single")
+    @Operation(summary = "Get variant by ID", description = "Forwards get variant by id request to Product Service")
+    public ResponseEntity<String> getVariantById(@RequestBody Object requestBody) {
+         logger.info("Get variant by id requested by: {}", getLoggedInUsername());
+         String url = productServiceUrl + "/api/variants/single";
+         HttpEntity<Object> entity = new HttpEntity<>(requestBody, createHeaders());
+         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+         return buildResponse(response);
     }
 
     @PostMapping("/variants")

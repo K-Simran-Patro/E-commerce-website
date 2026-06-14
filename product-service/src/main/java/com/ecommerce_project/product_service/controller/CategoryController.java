@@ -33,11 +33,10 @@ public class CategoryController {
         return categoryService.getAllCategories();
     }
 
-    // Get category by id
-    @GetMapping("/{id}")
-    public CategoryResponseDTO getCategoryById(@PathVariable Long id) //Handles HTTP GET requests to /api/categories/{id}. It takes the category ID from the URL path (using @PathVariable) and returns a CategoryResponseDTO object with the details of that category.
-    {
-        return categoryService.getCategoryById(id);
+    // Get category by ID (id from request body)
+    @GetMapping("/single")
+    public CategoryResponseDTO getCategoryById(@RequestBody CategoryRequestDTO request) {
+        return categoryService.getCategoryById(request);
     }
 
     // Update category - id comes from request body

@@ -73,18 +73,20 @@ public class CategoryService {
         return responseDTOs;
     }
 
-    // GET BY ID 
-    public CategoryResponseDTO getCategoryById(Long id) {
+    // GET BY ID
+    public CategoryResponseDTO getCategoryById(CategoryRequestDTO request) {
 
-        logger.info("Fetching category with id: {}", id);
+        logger.info("Fetching category with id: {}", request.getCategoryId());
 
-        if (!categoryRepository.existsById(id)) {
-            logger.error("Category not found with id: {}", id);
-            throw new ResourceNotFoundException("Category not found with id: " + id);
+        if (!categoryRepository.existsById(request.getCategoryId())) {
+         logger.error("Category not found with id: {}", request.getCategoryId());
+         throw new ResourceNotFoundException("Category not found with id: " + request.getCategoryId());
         }
 
-        Category category = categoryRepository.findById(id).get();
-        return mapToResponseDTO(category);
+        Category category = categoryRepository.findById(request.getCategoryId()).get();
+
+        logger.info("Category fetched successfully with id: {}", request.getCategoryId());
+            return mapToResponseDTO(category);
     }
 
     // UPDATE
