@@ -95,6 +95,7 @@ function showPage(id) {
 
   if (id === "categoryPage") loadCategories();
   if (id === "productPage") loadProducts();
+  if (id === "variantPage") loadAllVariants();
 }
 
 function isEmpty(value) {
@@ -651,6 +652,25 @@ async function searchVariantsByProduct() {
   }
 }
 
+async function loadAllVariants() {
+  setButtonLoading("variantAllBtn", true);
+
+  try {
+    var data = await apiGet("/admin/variants");
+
+    variantData = (data || []).filter(function (v) {
+      return v.isActive === true || v.isActive === undefined;
+    });
+
+    showVariants(variantData);
+
+  } catch (error) {
+    showToast(error.message, "error");
+  } finally {
+    setButtonLoading("variantAllBtn", false);
+  }
+}
+
 function showVariants(data) {
   var box = document.getElementById("variantList");
   box.innerHTML = "";
@@ -760,6 +780,7 @@ async function deleteVariant(id) {
     await searchVariantsByProduct();
   }
 
+  await loadAllVariants();
   showToast(variant.sku + " variant deleted successfully.", "success");
 } catch (error) {
   showToast(error.message || variant.sku + " variant was not deleted.", "error");
