@@ -5,11 +5,14 @@ import com.ecommerce_project.user_service.dto.LoginResponse;
 import com.ecommerce_project.user_service.dto.RegisterRequest;
 import com.ecommerce_project.user_service.dto.RegisterResponse;
 import com.ecommerce_project.user_service.entity.User;
+import com.ecommerce_project.user_service.entity.UserSession;
 import com.ecommerce_project.user_service.repository.UserRepository;
+import com.ecommerce_project.user_service.repository.UserSessionRepository;
 import com.ecommerce_project.user_service.security.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
@@ -17,16 +20,22 @@ import java.time.OffsetDateTime;
 @Service
 public class AuthService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthService.class); //Creates a logger instance for this class, which can be used to log messages for debugging and monitoring purposes
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @Autowired
-    private UserRepository userRepository; //Repository interface for performing CRUD operations on the User entity. It provides methods to find users by email and phone, as well as standard JPA repository methods for saving and retrieving users from the database.
+    private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; //Used to hash passwords before storing them in the database and to verify passwords during login. The PasswordEncoder bean will be configured elsewhere in the application (e.g., using BCryptPasswordEncoder) to provide secure password hashing.
+    private UserSessionRepository userSessionRepository;
 
     @Autowired
-    private JwtUtil jwtUtil; //Utility class for generating JSON Web Tokens (JWTs) for authenticated users. It will be used in the login method to create a token that can be returned to the client and used for subsequent authenticated requests.
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
 
     public RegisterResponse register(RegisterRequest request) {
 
@@ -60,29 +69,42 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
 
-    logger.info("Login attempt for email: {}", request.getEmail());
+        logger.info("Login attempt for email: {}", request.getEmail());
 
-    User user = userRepository.findByEmail(request.getEmail());
+        User user = userRepository.findByEmail(request.getEmail());
 
-    if (user == null) {
-        logger.warn("User not found: {}", request.getEmail());
-        throw new RuntimeException("User not found");
+        if (user == null) {
+            logger.warn("User not found: {}", request.getEmail());
+            throw new RuntimeException("User not found");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            logger.warn("Invalid password for: {}", request.getEmail());
+            throw new RuntimeException("Invalid password");
+        }
+
+        if (!user.getIsActive()) {
+            logger.warn("Account disabled: {}", request.getEmail());
+            throw new RuntimeException("Account is disabled");
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getUserId().toString());
+
+        // save session record
+        UserSession session = new UserSession();
+        session.setUser(user);
+        session.setToken(token);
+        session.setExpiresAt(OffsetDateTime.now().plusSeconds(expiration / 1000));
+        session.setIsActive(true);
+        session.setCreatedAt(OffsetDateTime.now());
+        session.setUpdatedAt(OffsetDateTime.now());
+        session.setCreatedBy(user.getEmail());
+        session.setModifiedBy(user.getEmail());
+
+        userSessionRepository.save(session);
+
+        logger.info("Login successful for: {}", request.getEmail());
+
+        return new LoginResponse(token, user.getRole());
     }
-
-    if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-        logger.warn("Invalid password for: {}", request.getEmail());
-        throw new RuntimeException("Invalid password");
-    }
-
-    if (!user.getIsActive()) {
-        logger.warn("Account disabled: {}", request.getEmail());
-        throw new RuntimeException("Account is disabled");
-    }
-
-    String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getUserId().toString());
-
-    logger.info("Login successful for: {}", request.getEmail());
-
-    return new LoginResponse(token, user.getRole());
-}
 }

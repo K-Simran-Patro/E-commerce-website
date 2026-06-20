@@ -77,3 +77,10 @@ CREATE TABLE user_schema.user_cart (
     created_by      VARCHAR(100),
     modified_by     VARCHAR(100)
 );
+
+
+ALTER TABLE user_schema.user_wishlist DROP COLUMN variant_id;
+ALTER TABLE user_schema.user_wishlist ADD COLUMN variant_id BIGINT NOT NULL;
+
+ALTER TABLE user_schema.user_cart DROP COLUMN variant_id;
+ALTER TABLE user_schema.user_cart ADD COLUMN variant_id BIGINT NOT NULL;
