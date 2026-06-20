@@ -67,44 +67,45 @@ public class AuthService {
         return new RegisterResponse("User registered successfully");
     }
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, String deviceInfo, String ipAddress) {
 
-        logger.info("Login attempt for email: {}", request.getEmail());
+    logger.info("Login attempt for email: {}", request.getEmail());
 
-        User user = userRepository.findByEmail(request.getEmail());
+    User user = userRepository.findByEmail(request.getEmail());
 
-        if (user == null) {
-            logger.warn("User not found: {}", request.getEmail());
-            throw new RuntimeException("User not found");
-        }
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            logger.warn("Invalid password for: {}", request.getEmail());
-            throw new RuntimeException("Invalid password");
-        }
-
-        if (!user.getIsActive()) {
-            logger.warn("Account disabled: {}", request.getEmail());
-            throw new RuntimeException("Account is disabled");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getUserId().toString());
-
-        // save session record
-        UserSession session = new UserSession();
-        session.setUser(user);
-        session.setToken(token);
-        session.setExpiresAt(OffsetDateTime.now().plusSeconds(expiration / 1000));
-        session.setIsActive(true);
-        session.setCreatedAt(OffsetDateTime.now());
-        session.setUpdatedAt(OffsetDateTime.now());
-        session.setCreatedBy(user.getEmail());
-        session.setModifiedBy(user.getEmail());
-
-        userSessionRepository.save(session);
-
-        logger.info("Login successful for: {}", request.getEmail());
-
-        return new LoginResponse(token, user.getRole());
+    if (user == null) {
+        logger.warn("User not found: {}", request.getEmail());
+        throw new RuntimeException("User not found");
     }
+
+    if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        logger.warn("Invalid password for: {}", request.getEmail());
+        throw new RuntimeException("Invalid password");
+    }
+
+    if (!user.getIsActive()) {
+        logger.warn("Account disabled: {}", request.getEmail());
+        throw new RuntimeException("Account is disabled");
+    }
+
+    String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getUserId().toString());
+
+    UserSession session = new UserSession();
+    session.setUser(user);
+    session.setToken(token);
+    session.setDeviceInfo(deviceInfo);
+    session.setIpAddress(ipAddress);
+    session.setExpiresAt(OffsetDateTime.now().plusSeconds(expiration / 1000));
+    session.setIsActive(true);
+    session.setCreatedAt(OffsetDateTime.now());
+    session.setUpdatedAt(OffsetDateTime.now());
+    session.setCreatedBy(user.getEmail());
+    session.setModifiedBy(user.getEmail());
+
+    userSessionRepository.save(session);
+
+    logger.info("Login successful for: {}", request.getEmail());
+
+    return new LoginResponse(token, user.getRole());
+}
 }
