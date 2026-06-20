@@ -60,34 +60,29 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
 
-        logger.info("Login attempt for email: {}", request.getEmail());
+    logger.info("Login attempt for email: {}", request.getEmail());
 
-        User user = userRepository.findByEmail(request.getEmail());
+    User user = userRepository.findByEmail(request.getEmail());
 
-
-        // Check if user exists
-        if (user == null) {
-            logger.warn("User not found: {}", request.getEmail());
-            throw new RuntimeException("User not found");
-        }
-
-        // Verify password
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            logger.warn("Invalid password for: {}", request.getEmail());
-            throw new RuntimeException("Invalid password");
-        }
-
-
-        // Check if account is active
-        if (!user.getIsActive()) {
-            logger.warn("Account disabled: {}", request.getEmail());
-            throw new RuntimeException("Account is disabled");
-        }
-
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());//Generates a JWT token for the authenticated user using the JwtUtil class. The token will include the user's email and role as claims, which can be used for authorization in subsequent requests. This token is then returned to the client in the LoginResponse, allowing the client to include it in the Authorization header of future requests to access protected resources.
-
-        logger.info("Login successful for: {}", request.getEmail());
-
-        return new LoginResponse(token, user.getRole());
+    if (user == null) {
+        logger.warn("User not found: {}", request.getEmail());
+        throw new RuntimeException("User not found");
     }
+
+    if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+        logger.warn("Invalid password for: {}", request.getEmail());
+        throw new RuntimeException("Invalid password");
+    }
+
+    if (!user.getIsActive()) {
+        logger.warn("Account disabled: {}", request.getEmail());
+        throw new RuntimeException("Account is disabled");
+    }
+
+    String token = jwtUtil.generateToken(user.getEmail(), user.getRole(), user.getUserId().toString());
+
+    logger.info("Login successful for: {}", request.getEmail());
+
+    return new LoginResponse(token, user.getRole());
+}
 }

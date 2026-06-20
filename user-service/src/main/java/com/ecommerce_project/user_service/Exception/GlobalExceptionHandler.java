@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         logger.error("RuntimeException: {}", ex.getMessage());
         Map<String, String> response = new HashMap<>();
         response.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); 
     }
 
     // handles Bean Validation errors — @NotBlank, @Email, @Size
