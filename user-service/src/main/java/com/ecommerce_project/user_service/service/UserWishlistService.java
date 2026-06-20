@@ -79,7 +79,7 @@ public class UserWishlistService {
     }
 
     // Remove from wishlist — soft delete
-    public String removeFromWishlist(UUID userId, UUID variantId) {
+    public String removeFromWishlist(UUID userId, Long variantId) {
 
         logger.info("Removing from wishlist for user: {}", userId);
 

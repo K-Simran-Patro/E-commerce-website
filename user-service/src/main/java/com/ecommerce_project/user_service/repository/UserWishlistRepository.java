@@ -9,5 +9,5 @@ public interface UserWishlistRepository extends JpaRepository<UserWishlist, UUID
 
     List<UserWishlist> findByUserUserId(UUID userId);
 
-    UserWishlist findByUserUserIdAndVariantId(UUID userId, UUID variantId);
+    UserWishlist findByUserUserIdAndVariantId(UUID userId, Long variantId);
 }

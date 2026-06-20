@@ -9,7 +9,7 @@ import java.util.UUID;
 public class UserCartResponse {
 
     private UUID cartId;
-    private UUID variantId;
+    private Long variantId;
     private Integer quantity;
     private Boolean isActive;
 }

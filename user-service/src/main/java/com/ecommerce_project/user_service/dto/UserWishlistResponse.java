@@ -10,7 +10,7 @@ import java.util.UUID;
 public class UserWishlistResponse {
 
     private UUID wishlistId;
-    private UUID variantId;
+    private Long variantId;
     private Boolean isActive;
     private OffsetDateTime createdAt;
 }

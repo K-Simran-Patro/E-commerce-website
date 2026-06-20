@@ -21,9 +21,8 @@ public class UserCart {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // variant_id comes from product_schema — no DB FK, Java handles validation
     @Column(name = "variant_id", nullable = false)
-    private UUID variantId;
+    private Long variantId;
 
     @Column(nullable = false)
     private Integer quantity;

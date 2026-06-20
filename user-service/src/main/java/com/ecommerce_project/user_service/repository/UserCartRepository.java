@@ -9,5 +9,5 @@ public interface UserCartRepository extends JpaRepository<UserCart, UUID> {
 
     List<UserCart> findByUserUserId(UUID userId);
 
-    UserCart findByUserUserIdAndVariantId(UUID userId, UUID variantId);
+    UserCart findByUserUserIdAndVariantId(UUID userId, Long variantId);
 }

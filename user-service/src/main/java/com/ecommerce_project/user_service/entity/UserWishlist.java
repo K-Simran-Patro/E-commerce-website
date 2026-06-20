@@ -21,10 +21,8 @@ public class UserWishlist {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // No @ManyToOne here — variant_id is from product_schema
-    // Java code handles validation, no DB FK constraint
     @Column(name = "variant_id", nullable = false)
-    private UUID variantId;
+    private Long variantId;
 
     @Column(name = "is_active")
     private Boolean isActive;
