@@ -27,13 +27,22 @@ function showToast(message, type) {
   var toastBox = document.getElementById("toastBox");
 
   toastBox.className = "toast-box " + (type || "success");
-  toastBox.innerText = message;
+  toastBox.innerHTML = "";
 
-  toast.classList.remove("hidden");
+  var messageText = document.createElement("p");
+  messageText.innerText = message;
+  toastBox.appendChild(messageText);
 
-  setTimeout(function () {
+  var closeBtn = document.createElement("button");
+  closeBtn.innerText = "Close";
+  closeBtn.className = "toast-close-btn";
+
+  closeBtn.onclick = function () {
     toast.classList.add("hidden");
-  }, 1800);
+  };
+
+  toastBox.appendChild(closeBtn);
+  toast.classList.remove("hidden");
 }
 
 function showConfirm(message) {
@@ -103,7 +112,6 @@ function isEmpty(value) {
 }
 
 // ── API helpers ──────────────────────────────────────────────
-// getHeaders() from utils.js adds Authorization and X-User-Name.
 
 async function apiGet(path) {
   var response = await fetch(apiUrl() + path, {
@@ -205,9 +213,7 @@ async function loadCategories() {
   try {
     var data = await apiGet("/admin/categories");
 
-    categoryData = (data || []).filter(function (c) {
-      return c.isActive === true || c.isActive === undefined;
-    });
+    categoryData = data || [];
 
     showCategories(categoryData);
   } catch (error) {
@@ -217,12 +223,17 @@ async function loadCategories() {
   }
 }
 
-function searchCategory() {
+async function searchCategory() {
   var id = document.getElementById("categorySearchId").value;
 
   if (!id) {
     showToast("Enter a category ID.", "error");
     return;
+  }
+
+  if (categoryData.length === 0) {
+    var data = await apiGet("/admin/categories");
+    categoryData = data || [];
   }
 
   var found = categoryData.filter(function (c) {
@@ -242,7 +253,7 @@ function showCategories(data) {
   box.innerHTML = "";
 
   if (!data || data.length === 0) {
-    box.innerHTML = "<p>No active categories found.</p>";
+    box.innerHTML = "<p>No categories found.</p>";
     return;
   }
 
@@ -254,6 +265,7 @@ function showCategories(data) {
           <th>Parent ID</th>
           <th>Category Name</th>
           <th>Slug</th>
+          <th>Active</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -267,6 +279,7 @@ function showCategories(data) {
         <td>${c.parentId || "-"}</td>
         <td>${c.name || "-"}</td>
         <td>${c.slug || "-"}</td>
+        <td>${c.isActive === false ? "No" : "Yes"}</td>
         <td>
           <div class="action-buttons">
             <button class="update-btn" onclick='openCategoryPopup(${JSON.stringify(c)})'>Update</button>
@@ -307,6 +320,12 @@ function openCategoryPopup(c) {
 
     <label>Slug</label>
     <input id="editCategorySlug" value="${c.slug || ""}" />
+
+    <label>Is Active</label>
+    <select id="editCategoryIsActive">
+      <option value="true" ${c.isActive !== false ? "selected" : ""}>true</option>
+      <option value="false" ${c.isActive === false ? "selected" : ""}>false</option>
+    </select>
   `;
 
   document.getElementById("popup").classList.remove("hidden");
@@ -342,7 +361,8 @@ async function deleteCategory(id) {
   }
 }
 
-/*Excel file uploader*/
+/* EXCEL FILE UPLOADER */
+
 document.getElementById("excelUploadForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -373,8 +393,8 @@ document.getElementById("excelUploadForm").addEventListener("submit", async func
     var result = await response.json();
 
     if (!response.ok) {
-        showToast(result.message || "Excel upload failed.", "error");
-        return;
+      showToast(result.message || "Excel upload failed.", "error");
+      return;
     }
 
     showToast(result.message || "Excel uploaded successfully.", "success");
@@ -383,6 +403,7 @@ document.getElementById("excelUploadForm").addEventListener("submit", async func
 
     await loadCategories();
     await loadProducts();
+    await loadAllVariants();
 
   } catch (error) {
     showToast("Excel upload failed: " + error.message, "error");
@@ -440,9 +461,7 @@ async function loadProducts() {
   try {
     var data = await apiGet("/admin/products");
 
-    productData = (data || []).filter(function (p) {
-      return p.isActive === true || p.isActive === undefined;
-    });
+    productData = data || [];
 
     showProducts(productData);
   } catch (error) {
@@ -452,12 +471,17 @@ async function loadProducts() {
   }
 }
 
-function searchProduct() {
+async function searchProduct() {
   var id = document.getElementById("productSearchId").value;
 
   if (!id) {
     showToast("Enter a product ID.", "error");
     return;
+  }
+
+  if (productData.length === 0) {
+    var data = await apiGet("/admin/products");
+    productData = data || [];
   }
 
   var found = productData.filter(function (p) {
@@ -477,7 +501,7 @@ function showProducts(data) {
   box.innerHTML = "";
 
   if (!data || data.length === 0) {
-    box.innerHTML = "<p>No active products found.</p>";
+    box.innerHTML = "<p>No products found.</p>";
     return;
   }
 
@@ -618,39 +642,12 @@ document.getElementById("variantForm").addEventListener("submit", async function
   try {
     await apiSend("/admin/variants", "POST", data);
     this.reset();
+    await loadAllVariants();
     showToast(sku + " variant created successfully.", "success");
   } catch (error) {
     showToast(error.message || sku + " variant was not created.", "error");
   }
 });
-
-async function searchVariantsByProduct() {
-  var productId = document.getElementById("variantSearchProductId").value;
-
-  if (!productId) {
-    showToast("Enter a product ID.", "error");
-    return;
-  }
-
-  setButtonLoading("variantLoadBtn", true);
-
-  try {
-    var data = await apiGet("/admin/variants");
-
-    variantData = data || [];
-
-    var filtered = variantData.filter(function (v) {
-      var active = v.isActive === true || v.isActive === undefined;
-      return active && String(v.productId) === String(productId);
-    });
-
-    showVariants(filtered);
-  } catch (error) {
-    showToast(error.message, "error");
-  } finally {
-    setButtonLoading("variantLoadBtn", false);
-  }
-}
 
 async function loadAllVariants() {
   setButtonLoading("variantAllBtn", true);
@@ -658,9 +655,7 @@ async function loadAllVariants() {
   try {
     var data = await apiGet("/admin/variants");
 
-    variantData = (data || []).filter(function (v) {
-      return v.isActive === true || v.isActive === undefined;
-    });
+    variantData = data || [];
 
     showVariants(variantData);
 
@@ -671,12 +666,37 @@ async function loadAllVariants() {
   }
 }
 
+async function searchVariant() {
+  var id = document.getElementById("variantSearchId").value;
+
+  if (!id) {
+    showToast("Enter a variant ID.", "error");
+    return;
+  }
+
+  if (variantData.length === 0) {
+    var data = await apiGet("/admin/variants");
+    variantData = data || [];
+  }
+
+  var found = variantData.filter(function (v) {
+    return String(v.variantId) === String(id);
+  });
+
+  if (found.length > 0) {
+    showVariants(found);
+  } else {
+    showVariants([]);
+    showToast(id + " id not found.", "error");
+  }
+}
+
 function showVariants(data) {
   var box = document.getElementById("variantList");
   box.innerHTML = "";
 
   if (!data || data.length === 0) {
-    box.innerHTML = "<p>No active variants found for this product.</p>";
+    box.innerHTML = "<p>No variants found.</p>";
     return;
   }
 
@@ -772,19 +792,12 @@ async function deleteVariant(id) {
   if (!confirmed) return;
 
   try {
-  await apiSend("/admin/variants", "DELETE", { variantId: id });
-
-  var productId = document.getElementById("variantSearchProductId").value;
-
-  if (productId) {
-    await searchVariantsByProduct();
+    await apiSend("/admin/variants", "DELETE", { variantId: id });
+    await loadAllVariants();
+    showToast(variant.sku + " variant deleted successfully.", "success");
+  } catch (error) {
+    showToast(error.message || variant.sku + " variant was not deleted.", "error");
   }
-
-  await loadAllVariants();
-  showToast(variant.sku + " variant deleted successfully.", "success");
-} catch (error) {
-  showToast(error.message || variant.sku + " variant was not deleted.", "error");
-}
 }
 
 /* ===================================================
@@ -811,7 +824,8 @@ document.getElementById("popupForm").addEventListener("submit", async function (
         categoryId: editId,
         name: name,
         slug: document.getElementById("editCategorySlug").value.trim(),
-        parentId: parentId ? Number(parentId) : null
+        parentId: parentId ? Number(parentId) : null,
+        isActive: document.getElementById("editCategoryIsActive").value === "true"
       };
 
       await apiSend("/admin/categories", "PUT", data);
@@ -858,6 +872,7 @@ document.getElementById("popupForm").addEventListener("submit", async function (
       };
 
       await apiSend("/admin/variants", "PUT", variantDataToUpdate);
+      await loadAllVariants();
 
       closePopup();
       showToast(sku + " variant updated successfully.", "success");

@@ -328,6 +328,19 @@ button:hover {
   border-top: 6px solid #dc2626;
 }
 
+.toast-box p {
+  margin: 0 0 15px;
+}
+
+.toast-close-btn {
+  background: #2563eb;
+  color: white;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 /* SPINNER */
 
 .spinner {
