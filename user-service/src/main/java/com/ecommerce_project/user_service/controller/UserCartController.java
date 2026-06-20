@@ -1,5 +1,6 @@
 package com.ecommerce_project.user_service.controller;
 
+import com.ecommerce_project.user_service.dto.UserCartDeleteRequest;
 import com.ecommerce_project.user_service.dto.UserCartRequest;
 import com.ecommerce_project.user_service.dto.UserCartResponse;
 import com.ecommerce_project.user_service.security.JwtUtil;
@@ -50,28 +51,27 @@ public class UserCartController {
         return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{cartId}")
+    @PutMapping
     public ResponseEntity<UserCartResponse> updateCart(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID cartId,
-            @RequestParam Integer quantity) {
+            @Valid @RequestBody UserCartRequest request) {
 
         UUID userId = getUserIdFromToken(authHeader);
-        logger.info("Update cart request: {} for user: {}", cartId, userId);
+        logger.info("Update cart request: {} for user: {}", request.getCartId(), userId);
 
-        UserCartResponse response = userCartService.updateCart(userId, cartId, quantity);
+        UserCartResponse response = userCartService.updateCart(userId, request.getCartId(), request.getQuantity());
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{cartId}")
+    @DeleteMapping
     public ResponseEntity<String> removeFromCart(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID cartId) {
+            @RequestBody UserCartDeleteRequest request) {
 
         UUID userId = getUserIdFromToken(authHeader);
-        logger.info("Remove from cart request: {} for user: {}", cartId, userId);
+        logger.info("Remove from cart request: {} for user: {}", request.getCartId(), userId);
 
-        String message = userCartService.removeFromCart(userId, cartId);
+        String message = userCartService.removeFromCart(userId, request.getCartId());
         return ResponseEntity.ok(message);
     }
 

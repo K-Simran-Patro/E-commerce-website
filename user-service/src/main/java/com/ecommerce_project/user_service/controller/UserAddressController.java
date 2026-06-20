@@ -1,5 +1,6 @@
 package com.ecommerce_project.user_service.controller;
 
+import com.ecommerce_project.user_service.dto.UserAddressDeleteRequest;
 import com.ecommerce_project.user_service.dto.UserAddressRequest;
 import com.ecommerce_project.user_service.dto.UserAddressResponse;
 import com.ecommerce_project.user_service.security.JwtUtil;
@@ -50,32 +51,30 @@ public class UserAddressController {
         return ResponseEntity.ok(responses);
     }
 
-    @PutMapping("/{addressId}")
+    @PutMapping
     public ResponseEntity<UserAddressResponse> updateAddress(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID addressId,
             @Valid @RequestBody UserAddressRequest request) {
 
         UUID userId = getUserIdFromToken(authHeader);
-        logger.info("Update address request: {} for user: {}", addressId, userId);
+        logger.info("Update address request: {} for user: {}", request.getAddressId(), userId);
 
-        UserAddressResponse response = userAddressService.updateAddress(userId, addressId, request);
+        UserAddressResponse response = userAddressService.updateAddress(userId, request.getAddressId(), request);
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{addressId}")
+    @DeleteMapping
     public ResponseEntity<String> deleteAddress(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID addressId) {
+            @RequestBody UserAddressDeleteRequest request) {
 
         UUID userId = getUserIdFromToken(authHeader);
-        logger.info("Delete address request: {} for user: {}", addressId, userId);
+        logger.info("Delete address request: {} for user: {}", request.getAddressId(), userId);
 
-        String message = userAddressService.deleteAddress(userId, addressId);
+        String message = userAddressService.deleteAddress(userId, request.getAddressId());
         return ResponseEntity.ok(message);
     }
 
-    // Extract userId directly from token — no DB lookup needed
     private UUID getUserIdFromToken(String authHeader) {
         String token = authHeader.substring(7);
         String userId = jwtUtil.extractUserId(token);

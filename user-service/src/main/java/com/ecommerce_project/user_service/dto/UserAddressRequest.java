@@ -3,10 +3,13 @@ package com.ecommerce_project.user_service.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class UserAddressRequest {
+
+    private UUID addressId;  // only used for update/delete
 
     @NotBlank(message = "Full name is required")
     private String fullName;

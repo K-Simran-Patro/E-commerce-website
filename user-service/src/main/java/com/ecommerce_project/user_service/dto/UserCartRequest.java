@@ -10,6 +10,8 @@ import java.util.UUID;
 @Setter
 public class UserCartRequest {
 
+    private UUID cartId;  // only used for update
+
     @NotNull(message = "Variant id is required")
     private UUID variantId;
 

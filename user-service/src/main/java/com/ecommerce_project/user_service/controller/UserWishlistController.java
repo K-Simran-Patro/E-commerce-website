@@ -1,5 +1,6 @@
 package com.ecommerce_project.user_service.controller;
 
+import com.ecommerce_project.user_service.dto.UserWishlistDeleteRequest;
 import com.ecommerce_project.user_service.dto.UserWishlistRequest;
 import com.ecommerce_project.user_service.dto.UserWishlistResponse;
 import com.ecommerce_project.user_service.security.JwtUtil;
@@ -50,15 +51,15 @@ public class UserWishlistController {
         return ResponseEntity.ok(responses);
     }
 
-    @DeleteMapping("/{variantId}")
+    @DeleteMapping
     public ResponseEntity<String> removeFromWishlist(
             @RequestHeader("Authorization") String authHeader,
-            @PathVariable UUID variantId) {
+            @RequestBody UserWishlistDeleteRequest request) {
 
         UUID userId = getUserIdFromToken(authHeader);
         logger.info("Remove from wishlist request for user: {}", userId);
 
-        String message = userWishlistService.removeFromWishlist(userId, variantId);
+        String message = userWishlistService.removeFromWishlist(userId, request.getVariantId());
         return ResponseEntity.ok(message);
     }
 
